@@ -1,0 +1,1175 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSG TSCM Triage v1.8.0</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#040810;min-height:100vh;}
+.dr{background:#070c14;color:#b8d4e8;font-family:'Exo 2',system-ui,sans-serif;font-size:14px;line-height:1.4;max-width:1200px;margin:0 auto;border:1px solid #14263a;}
+@keyframes rp{0%{transform:scale(.85);opacity:.85;}100%{transform:scale(1.18);opacity:0;}}
+@keyframes sp{0%,100%{border-color:#00c8d7;}50%{border-color:#00f0ff;}}
+@keyframes db{0%,100%{opacity:1;}50%{opacity:.25;}}
+.ring{position:absolute;border-radius:50%;border:1.5px solid #00c8d7;animation:rp 2.8s ease-out infinite;}
+.mb{background:#0e1822;border:1px solid #162536;border-radius:6px;padding:10px 8px 8px;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:5px;min-width:80px;color:#355570;transition:background .12s,border-color .12s,color .12s;font-family:'Exo 2',sans-serif;outline:none;}
+.mb:hover{background:#12202e;border-color:#00c8d755;color:#00c8d7;}
+.mb.active{background:#00c8d714;border-color:#00c8d7;color:#00c8d7;}
+.fi{width:100%;background:#0a1520;border:1px solid #162536;border-radius:4px;color:#b8d4e8;font-family:'Share Tech Mono',monospace;font-size:12px;padding:5px 8px;outline:none;transition:border-color .15s;}
+.fi:focus{border-color:#00c8d760;}
+.sb{width:100%;background:#00c8d714;border:1px solid #00c8d7;border-radius:4px;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:12px;font-weight:600;letter-spacing:.1em;padding:8px;cursor:pointer;outline:none;transition:background .15s;}
+.sb:hover:not(:disabled){background:#00c8d728;}
+.sb:disabled{opacity:.4;cursor:default;}
+.sb.scanning{animation:sp .9s ease-in-out infinite;}
+.ab{flex:1;background:#0a1520;border:1px solid #162536;border-radius:4px;color:#4a6e8a;font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.05em;padding:6px 2px;cursor:pointer;transition:all .12s;outline:none;text-align:center;}
+.ab:hover{border-color:#00c8d755;color:#00c8d7;background:#0e1822;}
+.if-row{display:flex;align-items:center;gap:5px;margin-bottom:4px;}
+.if-lbl{font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:.1em;color:#2e5070;width:46px;flex-shrink:0;}
+.if-inp{flex:1;background:#0a1520;border:1px solid #162536;border-radius:4px;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:12px;padding:4px 7px;outline:none;transition:border-color .15s;}
+.if-inp:focus{border-color:#00c8d760;}
+.if-sel{flex:1;background:#0a1520;border:1px solid #162536;border-radius:4px;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:12px;padding:4px 7px;outline:none;cursor:pointer;appearance:auto;}
+.if-sel:focus{border-color:#00c8d760;}
+.if-sel option{background:#0a1520;color:#b8d4e8;}
+.ci-row{display:flex;align-items:flex-start;gap:5px;background:#060b12;border:1px solid #162536;border-radius:4px;padding:5px 7px;margin-top:4px;}
+.ci-cmd{font-family:'Share Tech Mono',monospace;font-size:11px;color:#3ddc84;flex:1;word-break:break-all;line-height:1.5;}
+.ql{display:flex;align-items:center;gap:5px;color:#2e5070;text-decoration:none;font-family:'Share Tech Mono',monospace;font-size:11px;padding:3px 5px;border-radius:3px;transition:all .12s;}
+.ql:hover{color:#00c8d7;background:#00c8d710;}
+.sh{font-family:'Share Tech Mono',monospace;font-size:10px;font-weight:600;letter-spacing:.14em;color:#2e5070;margin-bottom:5px;padding-bottom:4px;border-bottom:1px solid #14263a;}
+.sl{flex:1;height:.5px;background:#162536;}
+.cpb{background:#0a1520;border:1px solid #1c2f46;border-radius:3px;color:#2e5070;cursor:pointer;padding:2px 7px;font-size:10px;font-family:'Share Tech Mono',monospace;letter-spacing:.05em;line-height:1.7;transition:all .12s;white-space:nowrap;outline:none;flex-shrink:0;}
+.cpb:hover{color:#00c8d7;border-color:#00c8d755;background:#0e1822;}
+.cpb.ok{color:#3ddc84;border-color:#3ddc8455;}
+.cb::-webkit-scrollbar,.ib::-webkit-scrollbar,.lc::-webkit-scrollbar{width:3px;}
+.cb::-webkit-scrollbar-thumb,.ib::-webkit-scrollbar-thumb,.lc::-webkit-scrollbar-thumb{background:#162536;border-radius:2px;}
+.vs-bar{display:flex;align-items:center;padding:5px 14px;cursor:pointer;border-top:1px solid #14263a;background:#060b12;}
+.vs-bar:hover .vtog{color:#00c8d7;}
+.vs-content{overflow:hidden;max-height:0;transition:max-height .3s ease;background:#060b12;}
+.vs-content.open{max-height:400px;}
+.si-item{background:#0a1520;border:1px solid #162536;border-radius:4px;padding:6px 8px;margin-bottom:4px;cursor:pointer;transition:border-color .12s;}
+.si-item:hover{border-color:#00c8d755;}
+.scan-btn-sm{background:#0a1520;border:1px solid #162536;border-radius:3px;color:#2e5070;cursor:pointer;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;outline:none;transition:all .12s;}
+.runb{background:#3ddc8414;border:1px solid #3ddc8440;border-radius:3px;color:#2e5070;cursor:pointer;padding:1px 6px;font-size:10px;font-family:'Share Tech Mono',monospace;line-height:1.7;transition:all .12s;white-space:nowrap;outline:none;flex-shrink:0;}
+.runb:hover{color:#3ddc84;border-color:#3ddc8480;background:#3ddc8420;}
+.scan-btn-sm:hover{color:#00c8d7;border-color:#00c8d755;}
+.main-area{display:flex;}
+.left-col{width:262px;min-width:262px;height:520px;overflow-y:auto;border-right:1px solid #14263a;}
+.right-col{flex:1;overflow-y:auto;max-height:520px;padding:13px;}
+@media(max-width:900px){.left-col{width:215px;min-width:215px;}.mb{min-width:68px;}}
+@media(max-width:700px){.main-area{flex-direction:column;}.left-col{width:100%;min-width:unset;height:400px;border-right:none;border-bottom:1px solid #14263a;}.right-col{max-height:none;}.mb{min-width:72px;}}
+</style>
+</head>
+<body>
+<div class="dr" id="root">
+
+<!-- HEADER -->
+<div style="text-align:center;padding:20px 20px 15px;border-bottom:1px solid #14263a;">
+  <div style="width:52px;height:52px;margin:0 auto 12px;position:relative;display:flex;align-items:center;justify-content:center;">
+    <div class="ring" style="width:22px;height:22px;animation-delay:0s;"></div>
+    <div class="ring" style="width:36px;height:36px;animation-delay:.75s;"></div>
+    <div class="ring" style="width:50px;height:50px;animation-delay:1.5s;"></div>
+    <div style="width:9px;height:9px;background:#00c8d7;border-radius:50%;position:relative;z-index:1;"></div>
+  </div>
+  <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
+  <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
+  <div style="display:flex;justify-content:center;gap:7px;">
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.0</span>
+    <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main-area">
+
+  <!-- LEFT COL -->
+  <div class="left-col lc">
+
+    <!-- CASE INTAKE -->
+    <div style="padding:10px 12px;border-bottom:1px solid #14263a;">
+      <div class="sh">CASE INTAKE</div>
+      <div style="margin-bottom:4px;"><div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:2px;">EXAMINER</div><input class="fi" id="f-examiner" spellcheck="false"></div>
+      <div style="margin-bottom:4px;"><div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:2px;">PI LICENSE #</div><input class="fi" id="f-license" spellcheck="false"></div>
+      <div style="margin-bottom:4px;"><div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:2px;">CLIENT / CASE</div><input class="fi" id="f-client" spellcheck="false"></div>
+      <div style="margin-bottom:4px;"><div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:2px;">CASE NUMBER</div><input class="fi" id="f-casenum" spellcheck="false" oninput="updateCI();ri()"></div>
+      <div style="margin-bottom:7px;"><div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:2px;">LOCATION</div><input class="fi" id="f-location" spellcheck="false"></div>
+      <button class="sb" id="scan-btn" onclick="runScan()" style="margin-bottom:4px;">// BEGIN WAN INTAKE</button>
+      <div style="display:flex;gap:3px;">
+        <button class="ab" onclick="exportPDF()">⬇ PDF</button>
+        <button class="ab" onclick="saveSession()">◈ SAVE</button>
+        <button class="ab" onclick="downloadTxt()">⊡ TXT</button>
+        <button class="ab" onclick="copyMasterRpt(this)" title="Copy master report bash command">⊞ RPT</button>
+        <button class="ab" id="clr-btn" onclick="clearConsole()" style="display:none;">✕ CLR</button>
+      </div>
+    </div>
+
+    <!-- INTERFACE -->
+    <div style="padding:8px 12px;border-bottom:1px solid #14263a;background:#060b12;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:6px;">
+        <div class="sh" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">INTERFACE</div>
+        <button onclick="detectIfaces(this)" class="scan-btn-sm" title="Auto-detect interfaces">↺ SCAN</button>
+      </div>
+      <div class="if-row">
+        <span class="if-lbl">IFACE</span>
+        <select id="si" class="if-sel" onchange="ri()">
+          <option value="eth0">eth0</option>
+          <option value="wlan0">wlan0</option>
+          <option value="wlan1">wlan1</option>
+        </select>
+      </div>
+      <div class="if-row">
+        <span class="if-lbl">WIFI</span>
+        <select id="swi" class="if-sel" onchange="ri()">
+          <option value="wlan0">wlan0</option>
+          <option value="wlan1" selected>wlan1</option>
+        </select>
+      </div>
+      <div class="if-row">
+        <span class="if-lbl">SUBNET</span>
+        <input id="ssn" class="if-inp" value="192.168.1.0/24" oninput="ri()">
+      </div>
+      <div style="font-size:10px;color:#2e5070;margin-top:6px;margin-bottom:2px;">// ⚠ RUN FIRST — creates all case subfolders:</div>
+      <div class="ci-row">
+        <span class="ci-cmd" id="ci-cmd">mkdir -p ~/DSG-TSCM/cases/UNASSIGNED/{pcaps,scans,wireless,screenshots,reports}</span>
+        <button class="cpb" onclick="copyCaseInit(this)">[cp]</button>
+      </div>
+    </div>
+    <!-- SESSIONS -->
+    <div style="padding:8px 12px;border-bottom:1px solid #14263a;">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:4px;">
+        <div class="sh" style="margin-bottom:0;padding-bottom:0;border-bottom:none;">SESSIONS</div>
+        <div style="display:flex;gap:5px;">
+          <button onclick="loadSessions()" class="scan-btn-sm">LOAD</button>
+          <button onclick="clearAllSess()" class="scan-btn-sm" onmouseover="this.style.color='#ff4757'" onmouseout="this.style.color='#2e5070'">CLR</button>
+        </div>
+      </div>
+      <div id="sess-list" style="max-height:100px;overflow-y:auto;font-family:'Share Tech Mono',monospace;font-size:11px;color:#1e3450;">// No sessions</div>
+    </div>
+
+    <!-- QUICK LINKS -->
+    <div style="padding:8px 12px;">
+      <div class="sh">QUICK LINKS</div>
+      <a class="ql" href="https://ifconfig.me" target="_blank">› ifconfig.me</a>
+      <a class="ql" href="https://dnsleaktest.com" target="_blank">› dnsleaktest.com</a>
+      <a class="ql" href="https://ipleak.net" target="_blank">› ipleak.net</a>
+      <a class="ql" href="https://www.shodan.io" target="_blank">› shodan.io</a>
+      <a class="ql" href="https://bgp.he.net" target="_blank">› bgp.he.net</a>
+      <a class="ql" href="https://mxtoolbox.com/SuperTool.aspx" target="_blank">› mxtoolbox.com</a>
+      <a class="ql" href="https://censys.io" target="_blank">› censys.io</a>
+      <a class="ql" href="https://networktotal.com" target="_blank">› networktotal.com</a>
+      <a class="ql" href="https://www.virustotal.com" target="_blank">› virustotal.com</a>
+      <a class="ql" href="https://urlscan.io" target="_blank">› urlscan.io</a>
+    </div>
+
+  </div><!-- end left-col -->
+
+  <!-- RIGHT COL -->
+  <div class="right-col">
+    <div style="font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.14em;color:#2e5070;margin-bottom:10px;padding-bottom:6px;border-bottom:1px solid #14263a;">SELECT MODE</div>
+
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">◈</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">NETWORK DISCOVERY</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('host',this)"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HOST SCAN</span></button>
+        <button class="mb" onclick="showInfo('port',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PORT SCAN</span></button>
+        <button class="mb" onclick="showInfo('oui',this)"><span style="font-size:15px;">⬡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">OUI CHECK</span></button>
+        <button class="mb" onclick="showInfo('onvif',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ONVIF</span></button>
+        <button class="mb" onclick="showInfo('traffic',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TRAFFIC ANLS</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⇌</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">WIRELESS</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('wifi',this)"><span style="font-size:15px;">⌘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">WIFI</span></button>
+        <button class="mb" onclick="showInfo('bt',this)"><span style="font-size:15px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BLUETOOTH</span></button>
+        <button class="mb" onclick="showInfo('macfp',this)"><span style="font-size:15px;">&#x229C;</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">MAC FINGERPRINT</span></button>
+        <button class="mb" onclick="showInfo('deauth',this)"><span style="font-size:15px;">⚡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DEAUTH DISC</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊙</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">CAMERAS</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('netcam',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">NETWORK CAM</span></button>
+        <button class="mb" onclick="showInfo('hiddencam',this)"><span style="font-size:15px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HIDDEN CAM</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊛</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">INTELLIGENCE</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('dns',this)"><span style="font-size:15px;">⊡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DNS LEAK</span></button>
+        <button class="mb" onclick="showInfo('shodan',this)"><span style="font-size:15px;">◈</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">SHODAN</span></button>
+        <button class="mb" onclick="showInfo('threat',this)"><span style="font-size:15px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">THREAT</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊗</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">OSINT</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('email',this)"><span style="font-size:15px;">◎</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">EMAIL</span></button>
+        <button class="mb" onclick="showInfo('phone',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PHONE</span></button>
+        <button class="mb" onclick="showInfo('username',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">USERNAME</span></button>
+        <button class="mb" onclick="showInfo('breach',this)"><span style="font-size:15px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BREACH</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊠</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">EVIDENCE</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('pcap',this)"><span style="font-size:15px;">⊟</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PCAP</span></button>
+        <button class="mb" onclick="showInfo('eyewitness',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">EYEWITNESS</span></button>
+        <button class="mb" onclick="showInfo('report',this)"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">REPORT</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#f0a832;font-size:12px;">⊛</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#f0a832;">ENT — ENTERPRISE</span><div class="sl" style="background:#f0a83240;"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('ent_arp',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ARP WATCH</span></button>
+        <button class="mb" onclick="showInfo('ent_dhcp',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ROGUE DHCP</span></button>
+        <button class="mb" onclick="showInfo('ent_delta',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DEV DELTA</span></button>
+        <button class="mb" onclick="showInfo('ent_mdns',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">mDNS/SSDP</span></button>
+        <button class="mb" onclick="showInfo('ent_cert',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊟</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">CERT SCAN</span></button>
+        <button class="mb" onclick="showInfo('ent_macrand',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⬡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">MAC RAND</span></button>
+        <button class="mb" onclick="showInfo('ent_covert',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">COVERT CH</span></button>
+        <button class="mb" onclick="showInfo('ent_bw',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">◈</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BANDWIDTH</span></button>
+        <button class="mb" onclick="showInfo('ent_timeline',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊠</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TIMELINE</span></button>
+        <button class="mb" onclick="showInfo('ent_summary',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">CASE SUMRY</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊡</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">SECURITY OPS</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" id="tscm-btn" onclick="showConsole()"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TSCM INTAKE</span></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- CONTEXT AREA -->
+<div id="ctx-area" style="display:none;border-top:1px solid #14263a;">
+  <div id="console-pane" style="display:none;">
+    <div style="padding:7px 12px;border-bottom:1px solid #14263a;display:flex;align-items:center;justify-content:space-between;background:#060b12;">
+      <div style="display:flex;align-items:center;gap:7px;">
+        <div id="s-dot" style="width:7px;height:7px;border-radius:50%;background:#2e5070;"></div>
+        <span id="s-lbl" style="font-family:'Share Tech Mono',monospace;font-size:11px;letter-spacing:.1em;color:#2e5070;">READY</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <div id="s-ts" style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#1e3450;display:none;"></div>
+        <button onclick="closeCtx()" style="background:none;border:none;cursor:pointer;color:#2e5070;font-family:'Share Tech Mono',monospace;font-size:11px;" onmouseover="this.style.color='#00c8d7'" onmouseout="this.style.color='#2e5070'">[CLOSE]</button>
+      </div>
+    </div>
+    <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.0 — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
+    </div>
+    <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
+  </div>
+  <div id="info-pane" style="display:none;">
+    <div style="padding:7px 14px;display:flex;align-items:center;justify-content:space-between;border-bottom:1px solid #14263a;background:#060b12;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:11px;color:#2e5070;letter-spacing:.1em;" id="ip-title"></div>
+      <div style="display:flex;align-items:center;gap:10px;">
+        <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#f0a832;">⚠ Always use [cp] to copy — tokens auto-fill your interface &amp; case values</span>
+        <button onclick="closeCtx()" style="background:none;border:none;cursor:pointer;color:#2e5070;font-family:'Share Tech Mono',monospace;font-size:11px;" onmouseover="this.style.color='#00c8d7'" onmouseout="this.style.color='#2e5070'">[CLOSE]</button>
+      </div>
+    </div>
+    <div id="ip-body" class="ib" style="padding:10px 14px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:2;max-height:360px;overflow-y:auto;"></div>
+  </div>
+</div>
+
+<!-- VERSION STRIP -->
+<div class="vs-bar" onclick="toggleVer()">
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.0 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
+</div>
+<div class="vs-content" id="vs-content">
+  <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.0 — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Interface simplified to single dropdown: eth0 / wlan0 / wlan1</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">ENT Enterprise section — 10 advanced scan panels</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">MAC FINGERPRINT panel in Wireless section</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">[▶] run button launches commands in xterm terminal</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Flask /api/run endpoint for terminal launch</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Port scan: subnet fast scan + single-host full scan</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">tshark: no sudo needed after wireshark group fix</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">WLESS default: wlan1 / wlan1mon throughout</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">SDR section removed</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">CAMERAS section: network ID + hidden cam detection</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">⚠ Copy warning prominent in all panel headers</span></div>
+    </div>
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#3ddc84;margin-bottom:3px;">v1.6.0 — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Left column truncation fixed</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Centered header restored</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">tshark wireshark group fix added</span></div>
+    </div>
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#3ddc84;margin-bottom:3px;">v1.5.0 and earlier</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Live interface detection via Flask</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">PDF / SAVE / TXT / RPT exports</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">[cp] copy buttons · session persistence</span></div>
+    </div>
+  </div>
+</div>
+
+</div>
+<script>
+const CC={cmd:'#00c8d7',desc:'#4a6e8a',comment:'#355570',warn:'#f0a832',url:'#00a8c0'};
+const CL={system:'#355570',success:'#3ddc84',data:'#b8d4e8',warning:'#f0a832',error:'#ff4757',divider:'#1a3050',header:'#00c8d7',meta:'#4a6e8a',link:'#00a8c0',info:'#2e5070'};
+let curKey=null,scanning=false,wanData=null,cLines=[];
+
+function gI(){return document.getElementById('si').value||'eth0';}
+function gW(){const el=document.getElementById('swi');const v=(el&&el.value)||'wlan1';return v.startsWith('wlan')?v:'wlan1';}
+function gS(){return document.getElementById('ssn').value||'192.168.1.0/24';}
+function getCN(){return(document.getElementById('f-casenum').value.trim().replace(/\s+/g,'_'))||'UNASSIGNED';}
+function getCP(){return'~/DSG-TSCM/cases/'+getCN();}
+function applyTokens(t){const w=gW(),cp=getCP(),cn=getCN();return t.replace(/\{IFACE\}/g,gI()).replace(/\{WIFACE\}mon/g,w+'mon').replace(/\{WIFACE\}/g,w).replace(/\{SUBNET\}/g,gS()).replace(/\{CASE_PATH\}/g,cp).replace(/\{CASE_NUMBER\}/g,cn);}
+function updateCI(){document.getElementById('ci-cmd').textContent='mkdir -p '+getCP()+'/{pcaps,scans,wireless,screenshots,reports}';}
+function copyCaseInit(btn){copyToClip(btn,document.getElementById('ci-cmd').textContent);}
+
+function detectIfaces(btn){
+  const orig=btn?btn.textContent:'';if(btn){btn.textContent='↻ …';btn.disabled=true;}
+  fetch('/api/interfaces').then(r=>r.json()).then(d=>{
+    if(d.error)throw new Error(d.error);
+    const wired=d.wired||[],wireless=d.wireless||[];
+    const si=document.getElementById('si'),swi=document.getElementById('swi');
+    const all=(d.interfaces&&d.interfaces.length)?d.interfaces:[...wired,...wireless];
+    if(all.length){si.innerHTML=all.map(i=>'<option value="'+i.name+'">'+i.name+(i.ip&&i.ip!=='no IP'?' ('+i.ip+')':'')+'</option>').join('');}
+    if(wireless.length){swi.innerHTML=wireless.map(i=>'<option value="'+i.name+'">'+i.name+'</option>').join('');}
+    const sub=(wired[0]&&wired[0].subnet)||(wireless.find(w=>w.subnet)||{}).subnet;
+    if(sub)document.getElementById('ssn').value=sub;
+    ri();
+  }).catch(e=>{console.warn('iface detect failed:',e);})
+    .finally(()=>{if(btn){btn.textContent=orig||'↺ SCAN';btn.disabled=false;}});
+}
+
+const ID={
+  host:{t:'// HOST SCAN',lines:[
+    {y:'warn',x:'// ⚠ UPDATE SUBNET: Set SUBNET field to your actual network before scanning'},
+    {y:'cmd',x:'ip addr show {IFACE} | grep "inet "'},
+    {y:'desc',x:'↳ Run this to find your actual subnet, then update the SUBNET field above'},
+    {y:'blank'},
+    {y:'warn',x:'// PREFLIGHT — fix OUI database (run once):'},
+    {y:'cmd',x:'sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null; sudo arp-scan --download-vendors 2>/dev/null; echo "OUI database ready"'},
+    {y:'desc',x:'↳ Fixes vendor resolution — wildcard handles any filename variant'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'desc',x:'↳ ARP sweep — creates folder then saves results'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sn -PR {SUBNET} -oA {CASE_PATH}/scans/ping_sweep'},
+    {y:'desc',x:'↳ Ping sweep — creates folder then saves XML/nmap/grepable'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo timeout 60 netdiscover -P -i {IFACE} -r {SUBNET} | tee {CASE_PATH}/scans/netdiscover.txt'},
+    {y:'desc',x:'↳ Active scan in print mode — saves results (-P required for file output)'},
+  ]},
+  port:{t:'// PORT SCAN — SURVEILLANCE PORTS',lines:[
+    {y:'warn',x:'// ⚠ UPDATE SUBNET field before running — default may not match your network'},
+    {y:'blank'},
+    {y:'comment',x:'// FAST — whole subnet, surveillance ports only (run this first):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -p 80,81,554,3702,8080,8443,8554,9000,34567,37777 --open {SUBNET} -oA {CASE_PATH}/scans/surv_ports'},
+    {y:'desc',x:'↳ Creates folder and saves XML/nmap output'},
+    {y:'blank'},
+    {y:'warn',x:'// ⚠ FULL-PORT SCAN — ONE HOST AT A TIME ONLY (not the whole subnet):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -sC -p- -T4 [TARGET_IP] -oA {CASE_PATH}/scans/fullport_[TARGET_IP]'},
+    {y:'desc',x:'↳ Replace [TARGET_IP] with a single flagged IP — e.g. 192.168.8.163'},
+    {y:'desc',x:'↳ Running -p- on an entire /24 takes hours — scan individual hosts only'},
+    {y:'blank'},
+    {y:'warn',x:'Port reference:'},
+    {y:'desc',x:'554   RTSP stream         3702  ONVIF/WS-Discovery'},
+    {y:'desc',x:'8554  Secondary RTSP      9000  Hikvision SDK'},
+    {y:'desc',x:'34567 Dahua DVR           37777 Dahua proprietary'},
+  ]},
+  oui:{t:'// OUI MAC FINGERPRINTING',lines:[
+    {y:'warn',x:'// PREFLIGHT — fix OUI database (run once):'},
+    {y:'cmd',x:'sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null; sudo arp-scan --download-vendors 2>/dev/null; echo "OUI database ready"'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'desc',x:'↳ ARP sweep with vendor resolution — creates folder and saves results'},
+    {y:'blank'},
+    {y:'warn',x:'★★ HIGH PRIORITY — DIY covert devices:'},
+    {y:'desc',x:'Espressif    DC:4F:22 / E8:DB:84 / CC:50:E3 / 24:0A:C4'},
+    {y:'desc',x:'Raspberry Pi B8:27:EB / DC:A6:32 / E4:5F:01'},
+    {y:'blank'},
+    {y:'warn',x:'★  SURVEILLANCE HARDWARE:'},
+    {y:'desc',x:'Hikvision  4C:11:BF / BC:AD:28 / C4:2F:90'},
+    {y:'desc',x:'Dahua      90:02:A9 / E0:50:8B / 3C:EF:8C'},
+    {y:'desc',x:'Wyze 2C:AA:8E  Ring B0:09:DA  Arlo 6C:56:97  Nest 18:B4:30'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/ {print $1, $2, $3}' | tee {CASE_PATH}/scans/oui_results.txt"},
+    {y:'desc',x:'↳ Extracts IP, MAC, vendor — saves to case folder'},
+  ]},
+  onvif:{t:'// ONVIF / WS-DISCOVERY — CAMERA PROBE',lines:[
+    {y:'warn',x:'// NOTE: broadcast-wsdiscovery does NOT exist in Nmap NSE — use these:'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 1 — UDP port scan for ONVIF (port 3702):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 3702 --open {SUBNET} -oA {CASE_PATH}/scans/onvif_udp'},
+    {y:'desc',x:'↳ Identifies hosts with ONVIF port open — saves results'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 2 — SSDP multicast probe:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_devices'},
+    {y:'desc',x:'\u2193 UPnP/SSDP discovery — saves responding devices to case folder'},
+    {y:'desc',x:'↳ Saves all SSDP-responding devices'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 3 — Python WS-Discovery probe:'},
+    {y:'cmd',x:'pip install wsdiscovery -q && mkdir -p {CASE_PATH}/scans && python3 -c "from wsdiscovery.discovery import ThreadedWSDiscovery as W;w=W();w.start();[print(s.getXAddrs()) for s in w.searchServices()];w.stop()" 2>/dev/null | tee {CASE_PATH}/scans/wsd_cameras.txt'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -p 554 --script rtsp-url-brute {SUBNET} -oA {CASE_PATH}/scans/rtsp_scan'},
+    {y:'desc',x:'↳ Brute-forces RTSP stream paths — saves results'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && docker run --net=host ullaakut/cameradar -t {SUBNET} 2>&1 | tee {CASE_PATH}/scans/cameradar.txt'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -p 80,8080,8443 --script http-title {SUBNET} -oA {CASE_PATH}/scans/http_titles'},
+  ]},
+  traffic:{t:'// TRAFFIC ANALYSIS',lines:[
+    {y:'warn',x:'// PREFLIGHT — fix tshark permissions (run once if you get Permission denied):'},
+    {y:'cmd',x:'sudo dpkg-reconfigure wireshark-common'},
+    {y:'desc',x:'↳ Select YES — allow non-superusers to capture packets'},
+    {y:'cmd',x:'sudo usermod -aG wireshark $USER && newgrp wireshark'},
+    {y:'desc',x:'↳ Add to wireshark group and apply immediately'},
+    {y:'blank'},
+    {y:'comment',x:'// VERIFY — confirm tshark works without sudo:'},
+    {y:'cmd',x:'tshark -i {IFACE} -c 5 2>&1 | head -10'},
+    {y:'desc',x:'↳ Should capture 5 packets. If Permission denied — logout/login and retry'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 1 — baseline capture (no sudo after group fix):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/pcaps && tshark -i {IFACE} -w {CASE_PATH}/pcaps/baseline.pcap -a duration:300'},
+    {y:'desc',x:'↳ 5-minute passive baseline — saves to case folder'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — verify pcap has data:'},
+    {y:'cmd',x:'ls -lh {CASE_PATH}/pcaps/baseline.pcap && tshark -r {CASE_PATH}/pcaps/baseline.pcap -c 5 2>/dev/null'},
+    {y:'desc',x:'↳ Check file size and confirm packets captured before analysis'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — live connection monitor:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -i {IFACE} -T fields -e ip.src -e ip.dst -e tcp.dstport 2>&1 | tee {CASE_PATH}/scans/live_connections.txt'},
+    {y:'desc',x:'↳ Shows errors — Ctrl+C to stop, saves output'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 4 — DNS entropy (run after Step 1 completes):'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -T fields -e dns.qry.name -Y 'dns.flags.response==0' 2>/dev/null | awk '{print length($1),$1}' | sort -rn | head -20 | tee {CASE_PATH}/scans/dns_entropy.txt"},
+    {y:'desc',x:'↳ DNS entropy — queries 40+ chars = tunneling indicator'},
+    {y:'blank'},
+    {y:'url',x:'https://networktotal.com'},
+    {y:'desc',x:'↳ Upload baseline.pcap for Snort + Suricata IDS analysis'},
+  ]},
+  wifi:{t:'// WIFI ANALYSIS — wlan1 / wlan1mon',lines:[
+    {y:'warn',x:'// All wifi commands use WLESS selector (default: wlan1)'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airmon-ng check kill'},
+    {y:'cmd',x:'sudo airmon-ng start {WIFACE}'},
+    {y:'desc',x:'↳ Puts wlan1 into monitor mode as wlan1mon'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airodump-ng {WIFACE}mon'},
+    {y:'desc',x:'↳ Live view of all SSIDs including hidden networks'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airodump-ng --write {CASE_PATH}/wireless/wifi_capture --output-format csv,pcap {WIFACE}mon'},
+    {y:'desc',x:'↳ Saves CSV + pcap to case folder (Ctrl+C to stop)'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo kismet -c {WIFACE}mon --log-prefix {CASE_PATH}/wireless/kismet'},
+    {y:'desc',x:'↳ Full 802.11 capture to case folder — http://localhost:2501'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airmon-ng stop {WIFACE}mon && sudo systemctl restart NetworkManager'},
+    {y:'desc',x:'↳ Restore wlan1 to managed mode when done'},
+  ]},
+  deauth:{t:'// DEAUTH DISCOVERY — 802.11 DEAUTH/DISASSOC DETECTION',lines:[
+    {y:'warn',x:'// Detects deauth/disassoc floods — used to jam cameras or force devices off-network'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 1 — put wireless card in monitor mode:'},
+    {y:'cmd',x:'sudo airmon-ng check kill && sudo airmon-ng start {WIFACE}'},
+    {y:'desc',x:'↳ Puts wlan1 into monitor mode as wlan1mon'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — live capture of deauth + disassoc frames:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/wireless && sudo tshark -i {WIFACE}mon -Y 'wlan.fc.type_subtype == 0x0c || wlan.fc.type_subtype == 0x0a' -T fields -e frame.time -e wlan.sa -e wlan.da -e wlan.bssid 2>/dev/null | tee {CASE_PATH}/wireless/deauth_frames.txt"},
+    {y:'desc',x:'↳ subtype 0x0c = deauthentication, 0x0a = disassociation'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — count deauth frames per source (flood = attack):'},
+    {y:'cmd',x:"awk '{print $2}' {CASE_PATH}/wireless/deauth_frames.txt | sort | uniq -c | sort -rn | tee {CASE_PATH}/wireless/deauth_sources.txt"},
+    {y:'desc',x:'↳ A single MAC emitting hundreds of deauths = active jamming/attack'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 4 — airodump-ng deauth counter (watch the # Deauths column live):'},
+    {y:'cmd',x:'sudo airodump-ng {WIFACE}mon'},
+    {y:'desc',x:'↳ Rising Deauth count on a BSSID indicates targeted deauth activity'},
+    {y:'blank'},
+    {y:'warn',x:'Flag: repeated deauths targeting your cameras/APs = someone is jamming coverage'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airmon-ng stop {WIFACE}mon && sudo systemctl restart NetworkManager'},
+    {y:'desc',x:'↳ Restore wlan1 to managed mode when done'},
+  ]},
+  bt:{t:'// BLUETOOTH / BLE SCAN',lines:[
+    {y:'comment',x:'// Covert audio bugs commonly use Bluetooth LE (BLE)'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo hciconfig hci0 up'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo hcitool lescan 2>/dev/null | tee {CASE_PATH}/wireless/ble_scan.txt'},
+    {y:'desc',x:'↳ BLE enumeration — saves to case folder (Ctrl+C to stop)'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo hcitool scan 2>/dev/null | tee {CASE_PATH}/wireless/bt_classic.txt'},
+    {y:'desc',x:'↳ Classic Bluetooth — saves to case folder'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo btscanner 2>/dev/null | tee {CASE_PATH}/wireless/bt_scanner.txt'},
+    {y:'blank'},
+    {y:'warn',x:'Flag: generic names ("Heart Rate Monitor") or unnamed devices'},
+    {y:'desc',x:'Covert BLE audio bugs rarely advertise a real name'},
+  ]},
+
+
+  macfp:{t:'// MAC ADDRESS FINGERPRINTING',lines:[
+    {y:'warn',x:'// Detects real hardware identity behind MAC randomization over time'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 1 — put wireless card in monitor mode:'},
+    {y:'cmd',x:'sudo airmon-ng check kill && sudo airmon-ng start {WIFACE}'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — extended probe capture (run 30+ minutes for best results):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo airodump-ng --band abg {WIFACE}mon --write {CASE_PATH}/wireless/probe_capture --output-format csv,pcap'},
+    {y:'desc',x:'↳ Captures all 802.11 probe request frames — longer run = stronger correlation'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — extract probe request fingerprints:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/wireless && tshark -r {CASE_PATH}/wireless/probe_capture-01.pcap -Y 'wlan.fc.type_subtype == 0x04' -T fields -e wlan.sa -e wlan_mgt.ssid -e frame.time 2>/dev/null | sort | uniq -c | sort -rn | tee {CASE_PATH}/wireless/probe_fingerprints.txt"},
+    {y:'desc',x:'↳ Same SSID probe list reappearing from new MACs = same physical device'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 4 — identify randomized MACs (locally administered bit set):'},
+    {y:'cmd',x:"awk '{print $2}' {CASE_PATH}/wireless/probe_fingerprints.txt | grep -iE '^[0-9a-f][26ae]:' | sort | uniq | tee {CASE_PATH}/wireless/randomized_macs.txt"},
+    {y:'desc',x:'↳ 2nd hex nibble = 2,6,A,E means bit 1 set = locally administered = randomized'},
+    {y:'blank'},
+    {y:'warn',x:'What stays constant despite MAC randomization:'},
+    {y:'desc',x:'SSID probe history   — device always searches for its known networks'},
+    {y:'desc',x:'802.11 capability bits — hardware feature flags unique to the chipset'},
+    {y:'desc',x:'IE element sequence  — order of Information Elements is chipset-specific'},
+    {y:'desc',x:'Probe timing pattern — inter-frame timing consistent per chipset model'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo airmon-ng stop {WIFACE}mon && sudo systemctl restart NetworkManager'},
+    {y:'desc',x:'↳ Restore wlan1 to managed mode when done'},
+  ]},
+  ent_arp:{t:'// ENT — ARP POISONING / SPOOFING DETECTION',lines:[
+    {y:'warn',x:'// Detects MITM devices sending gratuitous ARP or impersonating the gateway'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 1 — tshark passive ARP anomaly detection:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -i {IFACE} -Y 'arp.duplicate-address-detected or arp.isgratuitous' -T fields -e arp.src.hw_mac -e arp.src.proto_ipv4 2>/dev/null -a duration:120 | tee {CASE_PATH}/scans/arp_anomalies.txt"},
+    {y:'desc',x:'↳ Captures gratuitous ARPs and duplicate IP claims for 2 minutes'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 2 — arpwatch continuous monitoring:'},
+    {y:'cmd',x:'sudo apt install arpwatch -y'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arpwatch -i {IFACE} -f {CASE_PATH}/scans/arpwatch.dat 2>&1 | tee {CASE_PATH}/scans/arpwatch_log.txt'},
+    {y:'desc',x:'↳ Logs all MAC/IP changes — new activity or IP-MAC mismatches flagged'},
+    {y:'blank'},
+    {y:'warn',x:'Flag: any device claiming the gateway MAC or sending gratuitous ARP'},
+    {y:'desc',x:'Normal networks are silent on gratuitous ARP. Any hit warrants investigation.'},
+  ]},
+  ent_dhcp:{t:'// ENT — ROGUE DHCP SERVER DETECTION',lines:[
+    {y:'warn',x:'// A covert device acting as DHCP can redirect all traffic through itself'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 1 — tshark passive DHCP capture:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -i {IFACE} -f 'port 67 or port 68' -T fields -e ip.src -e dhcp.option.dhcp -e dhcp.option.router 2>/dev/null -a duration:120 | tee {CASE_PATH}/scans/dhcp_servers.txt"},
+    {y:'desc',x:'↳ Any IP other than your known gateway responding on port 67 is rogue'},
+    {y:'blank'},
+    {y:'comment',x:'// Option 2 — nmap DHCP discovery:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 67 --script dhcp-discover {SUBNET} -oA {CASE_PATH}/scans/rogue_dhcp'},
+    {y:'desc',x:'↳ Sends DHCP discover and records all servers that respond'},
+    {y:'blank'},
+    {y:'warn',x:'Only one DHCP server should exist — your gateway/router'},
+    {y:'desc',x:'Multiple responses = rogue DHCP server present on the network'},
+  ]},
+  ent_delta:{t:'// ENT — DEVICE CHANGE MONITORING',lines:[
+    {y:'warn',x:'// Devices powered off during initial sweep appear on rescan — run twice with time gap'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 1 — baseline scan:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | sort > {CASE_PATH}/scans/baseline_devices.txt && echo "Baseline saved: $(wc -l < {CASE_PATH}/scans/baseline_devices.txt) hosts"'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — wait 15-60 minutes then rescan:'},
+    {y:'cmd',x:'sudo arp-scan --localnet --interface={IFACE} --ignoredups | sort > {CASE_PATH}/scans/rescan_devices.txt && echo "Rescan saved: $(wc -l < {CASE_PATH}/scans/rescan_devices.txt) hosts"'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — diff to find new devices:'},
+    {y:'cmd',x:"diff {CASE_PATH}/scans/baseline_devices.txt {CASE_PATH}/scans/rescan_devices.txt | grep '^>' | tee {CASE_PATH}/scans/new_devices.txt"},
+    {y:'desc',x:'↳ Lines starting with > are devices present in rescan but not baseline'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 4 — find devices that disappeared:'},
+    {y:'cmd',x:"diff {CASE_PATH}/scans/baseline_devices.txt {CASE_PATH}/scans/rescan_devices.txt | grep '^<' | tee {CASE_PATH}/scans/removed_devices.txt"},
+    {y:'desc',x:'↳ Lines starting with < were present at baseline but gone on rescan'},
+  ]},
+  ent_mdns:{t:'// ENT — mDNS / BONJOUR / SSDP ENUMERATION',lines:[
+    {y:'warn',x:'// Smart cameras, IoT, and smart TVs announce themselves via mDNS and SSDP'},
+    {y:'blank'},
+    {y:'comment',x:'// mDNS / Bonjour via avahi-browse:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo timeout 60 avahi-browse -a -t 2>/dev/null | tee {CASE_PATH}/scans/mdns_devices.txt'},
+    {y:'desc',x:'↳ Lists all mDNS-advertised services — cameras show as _rtsp._tcp or _http._tcp'},
+    {y:'blank'},
+    {y:'comment',x:'// SSDP M-SEARCH multicast probe:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_all'},
+    {y:'desc',x:'\u2193 UPnP/SSDP discovery via nmap — saves all responding devices'},
+    {y:'desc',x:'↳ All SSDP-responding devices reply — saves to case folder'},
+    {y:'blank'},
+    {y:'comment',x:'// nmap UPnP info:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script upnp-info {SUBNET} -oA {CASE_PATH}/scans/upnp_info'},
+    {y:'desc',x:'↳ UPnP device descriptions often reveal manufacturer and model number'},
+  ]},
+  ent_cert:{t:'// ENT — SSL/TLS CERTIFICATE INSPECTION',lines:[
+    {y:'warn',x:'// Covert devices use self-signed certs — no trusted CA = flag'},
+    {y:'blank'},
+    {y:'comment',x:'// sslscan against a flagged host:'},
+    {y:'cmd',x:'sudo apt install sslscan -y'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sslscan [TARGET_IP] | tee {CASE_PATH}/scans/ssl_[TARGET_IP].txt'},
+    {y:'desc',x:'↳ Replace [TARGET_IP] with a flagged host IP — saves cert and cipher details'},
+    {y:'blank'},
+    {y:'comment',x:'// nmap ssl-cert script across subnet:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -p 443,8443,8080 --script ssl-cert {SUBNET} -oA {CASE_PATH}/scans/ssl_certs'},
+    {y:'desc',x:'↳ Grabs all TLS certs — inspect Issuer and Subject for device fingerprints'},
+    {y:'blank'},
+    {y:'warn',x:'Flags to look for in cert output:'},
+    {y:'desc',x:'Issuer = Subject (self-signed)    Expired or future-dated certs'},
+    {y:'desc',x:'Issuer = camera vendor firmware   CN = device IP address not a domain'},
+    {y:'desc',x:'Short key length (1024-bit RSA)   Weak cipher suites offered'},
+  ]},
+  ent_macrand:{t:'// ENT — MAC RANDOMIZATION ANALYSIS',lines:[
+    {y:'warn',x:'// Devices using randomized MACs hide real identity — detect the pattern'},
+    {y:'blank'},
+    {y:'comment',x:'// Identify locally administered MACs in ARP scan:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && grep -iE "[0-9a-f][26ae]:[0-9a-f]" {CASE_PATH}/scans/arp_scan.txt | tee {CASE_PATH}/scans/randomized_macs.txt'},
+    {y:'desc',x:'↳ 2nd nibble of 2,6,A,E = locally administered bit set = randomized MAC'},
+    {y:'blank'},
+    {y:'comment',x:'// Cross-reference with probe captures if wireless scan was run:'},
+    {y:'cmd',x:"tshark -r {CASE_PATH}/wireless/probe_capture-01.pcap -Y 'wlan.fc.type_subtype==0x04' -T fields -e wlan.sa 2>/dev/null | grep -iE '^[0-9a-f][26ae]:' | sort | uniq | tee {CASE_PATH}/wireless/randomized_probes.txt"},
+    {y:'blank'},
+    {y:'warn',x:'Common randomized MAC second nibble patterns:'},
+    {y:'desc',x:'x2:xx:xx  x6:xx:xx  xA:xx:xx  xE:xx:xx'},
+    {y:'desc',x:'Your earlier scan flagged: 8A:8C:5B:B0:A0:C3 (8A = locally administered)'},
+    {y:'blank'},
+    {y:'desc',x:'Cross-reference with MAC FINGERPRINT panel for extended correlation'},
+  ]},
+  ent_covert:{t:'// ENT — COVERT CHANNEL DETECTION',lines:[
+    {y:'warn',x:'// Advanced covert devices use low-and-slow traffic to avoid detection'},
+    {y:'blank'},
+    {y:'comment',x:'// Detect low-frequency connections to single destination:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -q -z conv,tcp 2>/dev/null | tee {CASE_PATH}/scans/low_slow.txt'},
+    {y:'desc',x:'↳ Connections with 2-9 packets — low-and-slow C2 beaconing pattern'},
+    {y:'blank'},
+    {y:'comment',x:'// DNS covert channel — long query strings:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -T fields -e dns.qry.name 2>/dev/null | awk '{print length($0), $0}' | sort -rn | head -20 | tee {CASE_PATH}/scans/dns_covert.txt"},
+    {y:'desc',x:'↳ DNS queries over 40 chars = potential DNS tunneling exfil channel'},
+    {y:'blank'},
+    {y:'comment',x:'// ICMP covert channel check:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -Y 'icmp' -T fields -e ip.src -e ip.dst -e data.len 2>/dev/null | awk '$3>100 {print}' | tee {CASE_PATH}/scans/icmp_covert.txt"},
+    {y:'desc',x:'↳ ICMP packets with large payloads (>100 bytes) = potential ICMP tunnel'},
+  ]},
+  ent_bw:{t:'// ENT — BANDWIDTH / EXFILTRATION VOLUME',lines:[
+    {y:'warn',x:'// Hidden cameras uploading continuously show sustained outbound transfer'},
+    {y:'blank'},
+    {y:'comment',x:'// Per-host traffic volume summary:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -q -z conv,ip 2>/dev/null | tee {CASE_PATH}/scans/bandwidth_stats.txt'},
+    {y:'desc',x:'↳ Shows bytes sent and received per host pair — sorts by volume'},
+    {y:'blank'},
+    {y:'comment',x:'// Top uploaders (high TX = potential exfil):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -q -z conv,ip 2>/dev/null | sort -k6 -rn | head -20 | tee {CASE_PATH}/scans/top_uploaders.txt'},
+    {y:'desc',x:'↳ Devices with high outbound bytes during periods of no user activity = flag'},
+    {y:'blank'},
+    {y:'comment',x:'// Live bandwidth monitor by host:'},
+    {y:'cmd',x:'sudo iftop -i {IFACE} -n -N'},
+    {y:'desc',x:'↳ Real-time bandwidth per connection — press P to pause, Q to quit'},
+  ]},
+  ent_timeline:{t:'// ENT — PCAP ACTIVITY TIMELINE',lines:[
+    {y:'warn',x:'// Correlate device activity times with known events in the space'},
+    {y:'blank'},
+    {y:'comment',x:'// First and last seen per device:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -q -z endpoints,ip 2>/dev/null | tee {CASE_PATH}/scans/device_timeline.txt'},
+    {y:'desc',x:'↳ Shows when each device was first and last active in the capture'},
+    {y:'blank'},
+    {y:'comment',x:'// Activity by 5-minute window:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -q -z io,stat,300 2>/dev/null | tee {CASE_PATH}/scans/activity_timeline.txt'},
+    {y:'desc',x:'↳ Devices active at unusual hours or showing periodic beaconing patterns'},
+    {y:'blank'},
+    {y:'comment',x:'// Periodic beacon detection (C2 heartbeat):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -T fields -e frame.time_epoch -e ip.src -e ip.dst 2>/dev/null | sort -k2,2 -k1,1n | tee {CASE_PATH}/scans/beacons.txt'},
+    {y:'desc',x:'↳ Connections occurring at same second-offset every minute = automated beacon'},
+  ]},
+  ent_summary:{t:'// ENT — CASE SUMMARY DASHBOARD',lines:[
+    {y:'warn',x:'// Run after all scans complete — generates one-page case overview'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/reports && printf 'DSG TSCM CASE SUMMARY\n========================\nCase: {CASE_NUMBER}\nDate: '$(date)'\n\nHOSTS FOUND: '$(grep -c 'packets received' {CASE_PATH}/scans/arp_scan.txt 2>/dev/null || echo 0 )'\nCAMERA HITS: '$(wc -l < {CASE_PATH}/scans/camera_hits.txt 2>/dev/null || echo 0)'\nNEW DEVICES: '$(wc -l < {CASE_PATH}/scans/new_devices.txt 2>/dev/null || echo 0)'\nARP ANOMALIES: '$(wc -l < {CASE_PATH}/scans/arp_anomalies.txt 2>/dev/null || echo 0)'\nROGUE DHCP: '$(wc -l < {CASE_PATH}/scans/dhcp_servers.txt 2>/dev/null || echo 0)'\nRANDOMIZED MACS: '$(wc -l < {CASE_PATH}/scans/randomized_macs.txt 2>/dev/null || echo 0)'\nDNS TUNNELING: '$(wc -l < {CASE_PATH}/scans/dns_entropy.txt 2>/dev/null || echo 0)' high-entropy queries\nTOP UPLOADERS: '$(wc -l < {CASE_PATH}/scans/top_uploaders.txt 2>/dev/null || echo 0)' hosts\n========================' | tee {CASE_PATH}/reports/case_summary.txt"},
+    {y:'desc',x:'↳ Creates case_summary.txt from all scan output files'},
+    {y:'blank'},
+    {y:'cmd',x:'cat {CASE_PATH}/reports/case_summary.txt'},
+    {y:'blank'},
+    {y:'desc',x:'Use ⊞ RPT button in Case Intake to generate full master report'},
+    {y:'desc',x:'Use ⬇ PDF button to export examiner-certified court-ready PDF'},
+  ]},
+  netcam:{t:'// NETWORK CAMERA IDENTIFICATION',lines:[
+    {y:'comment',x:'// STEP 1 — flag known camera OUIs in arp-scan output:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt | grep -iE "ring|arlo|wyze|blink|eufy|amcrest|reolink|foscam|nest|hikvision|dahua|axis|b0:09:da|6c:56:97|2c:aa:8e|f4:f2:28|d4:52:bf|9c:8e:cd|ec:71:db|18:b4:30|4c:11:bf|90:02:a9|00:40:8c" | tee {CASE_PATH}/scans/camera_hits.txt'},
+    {y:'desc',x:'↳ Flags known camera vendors in live scan — saves full results and flagged hits'},
+    {y:'blank'},
+    {y:'warn',x:'Known camera OUI prefixes:'},
+    {y:'desc',x:'Ring LLC     B0:09:DA / 78:8A:20    Arlo         6C:56:97 / 44:65:0D'},
+    {y:'desc',x:'Wyze Labs    2C:AA:8E / D0:3F:27    Blink        F4:F2:28 / 44:A6:E5'},
+    {y:'desc',x:'Eufy/Anker   D4:52:BF / 84:C9:B2   Amcrest      9C:8E:CD / 00:49:C1'},
+    {y:'desc',x:'Reolink      EC:71:DB / B0:C5:54    Foscam       C4:02:4A / 00:26:6C'},
+    {y:'desc',x:'Nest/Google  18:B4:30 / 64:16:66    TP-Link Kasa 50:C7:BF / 54:AF:97'},
+    {y:'desc',x:'Hikvision    4C:11:BF / BC:AD:28    Dahua        90:02:A9 / E0:50:8B'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — scan for open RTSP streams on flagged hosts:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -p 554,8554 --open {SUBNET} -oA {CASE_PATH}/scans/rtsp_hosts'},
+    {y:'desc',x:'↳ Finds all hosts with RTSP ports open — saves results'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -p 554 --script rtsp-url-brute {SUBNET} -oA {CASE_PATH}/scans/rtsp_streams'},
+    {y:'desc',x:'↳ Brute-forces RTSP stream paths to get live feed URLs'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — check for cloud-upload traffic by brand:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -T fields -e ip.dst -e dns.qry.name 2>/dev/null | grep -iE 'ring|arlo|wyze|amazon|kinesis|tuya|alibaba|smartcam|amcrest|reolink|hikvision|dahua|foscam' | sort | uniq -c | sort -rn | tee {CASE_PATH}/scans/camera_cloud_traffic.txt"},
+    {y:'desc',x:'↳ Identifies camera cloud-upload destinations in baseline capture'},
+    {y:'blank'},
+    {y:'warn',x:'Default ports by brand:'},
+    {y:'desc',x:'Ring / Arlo  443 only (cloud — no direct RTSP access)'},
+    {y:'desc',x:'Wyze         443 (cloud), 554 (some models)'},
+    {y:'desc',x:'Amcrest      80, 554, 8080, 37777'},
+    {y:'desc',x:'Reolink      80, 554, 8080, 9000'},
+    {y:'desc',x:'Foscam       88, 554, 8080'},
+    {y:'desc',x:'Hikvision    80, 8000, 554, 8200'},
+    {y:'desc',x:'Dahua        80, 554, 37777'},
+    {y:'blank'},
+    {y:'comment',x:'// Shodan dorks — paste in shodan.io search bar:'},
+    {y:'cmd',x:'product:"Hikvision IP Camera"'},
+    {y:'cmd',x:'product:"Dahua IP Camera"'},
+    {y:'cmd',x:'title:"Amcrest" country:"US"'},
+    {y:'cmd',x:'port:554 has_screenshot:true'},
+    {y:'desc',x:'↳ Last query finds cameras with live screenshot indexed by Shodan'},
+  ]},
+  hiddencam:{t:'// HIDDEN SPY CAMERA DETECTION',lines:[
+    {y:'warn',x:'// PHYSICAL DETECTION TECHNIQUES — no tools required'},
+    {y:'blank'},
+    {y:'warn',x:'1. IR ILLUMINATOR DETECTION (most reliable, zero equipment)'},
+    {y:'desc',x:'Most covert cameras use 940nm IR LEDs for night vision'},
+    {y:'desc',x:'Phone front cameras can detect 940nm IR (rear cameras often filter it)'},
+    {y:'desc',x:'Darken room → open phone camera → slowly pan room'},
+    {y:'desc',x:'Active IR arrays appear as bright white/purple glowing dots'},
+    {y:'desc',x:'Check: smoke detectors, clocks, USB chargers, air purifiers'},
+    {y:'blank'},
+    {y:'warn',x:'2. LENS REFLECTION DETECTION'},
+    {y:'desc',x:'Use bright flashlight or phone torch in darkened room'},
+    {y:'desc',x:'Slowly scan walls, objects, shelves — camera lenses reflect as sharp pinpoints'},
+    {y:'desc',x:'Pinpoint reflections that do not move as you move the light = lens'},
+    {y:'blank'},
+    {y:'warn',x:'3. COMMON COVERT CAMERA FORM FACTORS — always inspect:'},
+    {y:'desc',x:'Smoke detectors (check if unusually positioned or newly placed)'},
+    {y:'desc',x:'Digital alarm clocks and clock radios'},
+    {y:'desc',x:'USB wall chargers, power strips, and power banks'},
+    {y:'desc',x:'Picture frames, decorative mirrors (one-way glass + camera behind)'},
+    {y:'desc',x:'Pens, books, tissue boxes, artificial plants on shelves'},
+    {y:'desc',x:'Air purifiers and small fans'},
+    {y:'desc',x:'Sprinkler heads and exit sign housings'},
+    {y:'desc',x:'Screws with non-standard or oversized heads (lens in screw head)'},
+    {y:'desc',x:'Electrical outlet covers and wall plates with extra holes'},
+    {y:'blank'},
+    {y:'warn',x:'4. WIFI DETECTION — unassociated devices in airodump'},
+    {y:'cmd',x:'sudo airmon-ng start {WIFACE} && sudo airodump-ng {WIFACE}mon'},
+    {y:'desc',x:'↳ Hidden WiFi cameras often appear as unassociated clients'},
+    {y:'desc',x:'Look for devices transmitting probes but not connected to any AP'},
+    {y:'blank'},
+    {y:'warn',x:'5. RF TRANSMISSION DETECTION — analog wireless cameras'},
+    {y:'desc',x:'Analog covert cameras transmit on: 1.2 GHz, 2.4 GHz, 5.8 GHz'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && rtl_power -f 1.18G:1.22G:10k -g 40 -i 1 -e 30s {CASE_PATH}/scans/rf_1200mhz.csv'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && rtl_power -f 2.39G:2.41G:10k -g 40 -i 1 -e 30s {CASE_PATH}/scans/rf_2400mhz.csv'},
+    {y:'desc',x:'↳ Requires RTL-SDR or HackRF — saves power scan to case folder'},
+    {y:'blank'},
+    {y:'warn',x:'6. CLOUD UPLOAD TRAFFIC — active cameras phone home'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/baseline.pcap -T fields -e ip.src -e ip.dst 2>/dev/null | grep -v '192\.168\.' | sort | uniq -c | sort -rn | head -30 | tee {CASE_PATH}/scans/external_connections.txt"},
+    {y:'desc',x:'↳ Identifies devices making persistent external connections (camera upload indicator)'},
+    {y:'blank'},
+    {y:'warn',x:'7. HEAT SIGNATURE'},
+    {y:'desc',x:'Cameras with active IR arrays generate detectable heat'},
+    {y:'desc',x:'Use FLIR or thermal app — check smoke detectors and clocks that feel warm'},
+    {y:'blank'},
+    {y:'comment',x:'// DOCUMENT FINDINGS'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/screenshots && fswebcam -r 1920x1080 {CASE_PATH}/screenshots/camera_evidence_$(date +%H%M%S).jpg'},
+    {y:'desc',x:'↳ Photograph physical evidence in place before disturbing'},
+  ]},
+  dns:{t:'// DNS LEAK CHECK',lines:[
+    {y:'comment',x:'// Browser tools — run from inside target network'},
+    {y:'blank'},
+    {y:'url',x:'https://dnsleaktest.com'},
+    {y:'desc',x:'↳ Rogue resolvers = covert device using alternate DNS (C2 indicator)'},
+    {y:'blank'},
+    {y:'url',x:'https://ipleak.net'},
+    {y:'desc',x:'↳ WebRTC + IPv6 + DNS combined leak check'},
+    {y:'blank'},
+    {y:'comment',x:'// Kali — after tshark group fix, no sudo needed:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -i {IFACE} -f 'port 53' -T fields -e ip.src -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -rn | tee {CASE_PATH}/scans/dns_queries.txt"},
+    {y:'desc',x:'↳ Captures all DNS queries — saves to case folder (Ctrl+C to stop)'},
+  ]},
+  shodan:{t:'// SHODAN / CENSYS EXTERNAL AUDIT',lines:[
+    {y:'comment',x:'// Paste WAN IP — no account needed for basic lookup'},
+    {y:'blank'},
+    {y:'url',x:'https://www.shodan.io/host/[WAN_IP]'},
+    {y:'desc',x:'↳ Indexed open ports, banners, cameras, IoT reachable from internet'},
+    {y:'blank'},
+    {y:'url',x:'https://search.censys.io/hosts/[WAN_IP]'},
+    {y:'desc',x:'↳ Certificate transparency — self-signed TLS on rogue devices'},
+    {y:'blank'},
+    {y:'url',x:'https://grc.com/shieldsup'},
+    {y:'desc',x:'↳ External port exposure test'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV --script shodan-api --script-args shodan-api.apikey=[KEY] {SUBNET} -oA {CASE_PATH}/scans/shodan_nmap'},
+    {y:'desc',x:'↳ Shodan integration in nmap (requires free API key)'},
+  ]},
+  threat:{t:'// THREAT INTELLIGENCE',lines:[
+    {y:'comment',x:'// Cross-reference suspicious IPs from traffic analysis'},
+    {y:'blank'},
+    {y:'url',x:'https://www.virustotal.com/gui/ip-address/[IP]'},
+    {y:'desc',x:'↳ 70+ engine cross-reference for malicious activity'},
+    {y:'blank'},
+    {y:'url',x:'https://mxtoolbox.com/SuperTool.aspx'},
+    {y:'desc',x:'↳ Blacklist check — botnet / spam C2 flags'},
+    {y:'blank'},
+    {y:'url',x:'https://bgp.he.net/ip/[IP]'},
+    {y:'desc',x:'↳ ASN peering — flags unexpected cloud/VPS egress'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && whois [IP] | grep -iE '^(OrgName|netname|descr):' | tee {CASE_PATH}/scans/whois_[IP].txt"},
+    {y:'desc',x:'↳ Quick ASN lookup — saves to case folder'},
+  ]},
+  email:{t:'// EMAIL OSINT',lines:[
+    {y:'comment',x:'// Pivot email → accounts → physical identity'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && pip install holehe && holehe target@email.com 2>/dev/null | tee {CASE_PATH}/scans/holehe_results.txt'},
+    {y:'desc',x:'↳ Checks 120+ platforms — saves to case folder'},
+    {y:'blank'},
+    {y:'url',x:'https://epieos.com'},
+    {y:'desc',x:'↳ Google account, linked social profiles, Gravatar'},
+    {y:'blank'},
+    {y:'url',x:'https://dehashed.com'},
+    {y:'desc',x:'↳ Breach data — passwords, IPs, alternate emails'},
+  ]},
+  phone:{t:'// PHONE OSINT',lines:[
+    {y:'comment',x:'// Pivot phone number → identity → social media'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && pip install phoneinfoga && phoneinfoga scan -n +1XXXXXXXXXX 2>/dev/null | tee {CASE_PATH}/scans/phoneinfoga.txt'},
+    {y:'cmd',x:'phoneinfoga serve'},
+    {y:'desc',x:'↳ Web UI at localhost:5000 — saves scan to case folder'},
+    {y:'blank'},
+    {y:'warn',x:'// Burner phone technique — zero notification to target:'},
+    {y:'desc',x:'Add number to contacts → open WhatsApp/Telegram'},
+    {y:'desc',x:'Profile photo, display name, About appear instantly'},
+    {y:'blank'},
+    {y:'url',x:'https://www.idcrawl.com'},
+    {y:'desc',x:'↳ Checks Facebook, Instagram, LinkedIn, TikTok by phone #'},
+  ]},
+  username:{t:'// USERNAME ENUMERATION',lines:[
+    {y:'comment',x:'// Pivot username → all registered platforms'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && pip install sherlock-project && sherlock [username] --timeout 10 --output {CASE_PATH}/scans/sherlock_[username].txt'},
+    {y:'desc',x:'↳ Checks 300+ sites — saves found profile URLs to case folder'},
+    {y:'blank'},
+    {y:'url',x:'https://whatsmyname.app'},
+    {y:'desc',x:'↳ Web-based cross-platform username enumeration'},
+  ]},
+  breach:{t:'// BREACH DATA',lines:[
+    {y:'comment',x:'// Search breached databases for target identifiers'},
+    {y:'blank'},
+    {y:'url',x:'https://dehashed.com'},
+    {y:'desc',x:'↳ Email, phone, IP → passwords, accounts, alternate emails'},
+    {y:'blank'},
+    {y:'url',x:'https://intelx.io'},
+    {y:'desc',x:'↳ Dark web, Pastebin, leaks, historic data'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && curl -s 'https://haveibeenpwned.com/api/v3/breachedaccount/target%40email.com' -H 'hibp-api-key:[KEY]' | python3 -m json.tool | tee {CASE_PATH}/scans/hibp_results.txt"},
+    {y:'desc',x:'↳ HIBP API breach check — saves to case folder'},
+  ]},
+  pcap:{t:'// PCAP ANALYSIS',lines:[
+    {y:'warn',x:'// PREFLIGHT — see TRAFFIC ANLS panel if tshark gives Permission denied'},
+    {y:'blank'},
+    {y:'comment',x:'// Capture WITHOUT sudo after wireshark group fix:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/pcaps && tshark -i {IFACE} -w {CASE_PATH}/pcaps/tscm_capture.pcap -a duration:600'},
+    {y:'desc',x:'↳ 10-minute capture — saves to case folder'},
+    {y:'blank'},
+    {y:'comment',x:'// Verify pcap before analysis:'},
+    {y:'cmd',x:'ls -lh {CASE_PATH}/pcaps/tscm_capture.pcap && tshark -r {CASE_PATH}/pcaps/tscm_capture.pcap -c 5 2>/dev/null'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tshark -r {CASE_PATH}/pcaps/tscm_capture.pcap -T fields -e ip.dst 2>/dev/null | sort | uniq -c | sort -rn | head -20 | tee {CASE_PATH}/scans/top_dst_ips.txt"},
+    {y:'desc',x:'↳ Top destination IPs — saves to case folder'},
+    {y:'blank'},
+    {y:'url',x:'https://networktotal.com'},
+    {y:'desc',x:'↳ Upload pcap for Snort + Suricata IDS analysis'},
+    {y:'blank'},
+    {y:'url',x:'https://cloudshark.org'},
+    {y:'desc',x:'↳ Browser Wireshark — annotate and share for LE submission'},
+  ]},
+  eyewitness:{t:'// EYEWITNESS SCREENSHOTS',lines:[
+    {y:'comment',x:'// Screenshot every discovered web interface'},
+    {y:'blank'},
+    {y:'cmd',x:'sudo apt install eyewitness -y'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && nmap -p 80,8080,8443 --open {SUBNET} -oG - | grep 'open' | awk '{print $2}' > {CASE_PATH}/scans/http_hosts.txt"},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/screenshots && eyewitness --web -f {CASE_PATH}/scans/http_hosts.txt -d {CASE_PATH}/screenshots'},
+    {y:'desc',x:'↳ Saves screenshots to case folder'},
+    {y:'blank'},
+    {y:'cmd',x:'firefox {CASE_PATH}/screenshots/report.html'},
+    {y:'blank'},
+    {y:'warn',x:'Default credentials on cameras = unauthorized placement'},
+    {y:'desc',x:'Legitimately installed cameras have site-specific credentials'},
+  ]},
+  report:{t:'// REPORT GENERATION — MASTER REPORT',lines:[
+    {y:'comment',x:'// MASTER REPORT — combines all scan output into one document'},
+    {y:'blank'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/reports && printf 'DSG TSCM MASTER REPORT\\nCase: {CASE_NUMBER}\\nPath: {CASE_PATH}\\nDate: '$(date)'\\n' > {CASE_PATH}/reports/master_report.txt && for f in {CASE_PATH}/scans/*.txt {CASE_PATH}/wireless/*.txt; do [ -f \"$f\" ] && printf '\\n=== %s ===\\n' \"$f\" >> {CASE_PATH}/reports/master_report.txt && cat \"$f\" >> {CASE_PATH}/reports/master_report.txt; done && echo '\\n✓ Saved: {CASE_PATH}/reports/master_report.txt'"},
+    {y:'desc',x:'↳ Creates reports folder and combines all scan + wireless .txt files'},
+    {y:'blank'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/reports && xsltproc /usr/share/nmap/nmap.xsl {CASE_PATH}/scans/fullport_[TARGET_IP].xml -o {CASE_PATH}/reports/nmap_report.html 2>/dev/null && firefox {CASE_PATH}/reports/nmap_report.html'},
+    {y:'desc',x:'↳ Convert Nmap XML to HTML report and open in Firefox'},
+    {y:'blank'},
+    {y:'cmd',x:'cat {CASE_PATH}/reports/master_report.txt'},
+    {y:'desc',x:'↳ View master report in terminal'},
+    {y:'blank'},
+    {y:'warn',x:'// Browser exports — use buttons in Case Intake panel:'},
+    {y:'desc',x:'⬇ PDF — formatted report with examiner cert block'},
+    {y:'desc',x:'◈ SAVE — session to browser storage for reload'},
+    {y:'desc',x:'⊡ TXT — raw console output for case file / LE email'},
+    {y:'desc',x:'⊞ RPT — copies master report bash command to clipboard'},
+  ]}
+};
+
+async function runCmd(btn,cmd){
+  const orig=btn.textContent;
+  btn.textContent='[▶...]';btn.style.color='#3ddc84';
+  try{
+    const res=await fetch('http://localhost:5555/api/run',{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({cmd:cmd}),signal:AbortSignal.timeout(3000)
+    });
+    btn.textContent=res.ok?'[▶ ✓]':'[▶ ✗]';
+    btn.style.color=res.ok?'#3ddc84':'#ff4757';
+  }catch(e){
+    btn.textContent='[▶ ✗]';btn.style.color='#ff4757';
+  }
+  setTimeout(()=>{btn.textContent=orig;btn.style.color='';},2000);
+}
+
+async function copyToClip(btn,text){
+  try{await navigator.clipboard.writeText(text);}
+  catch(e){const ta=document.createElement('textarea');ta.value=text;ta.style.cssText='position:absolute;top:-9999px;left:-9999px;';document.body.appendChild(ta);ta.focus();ta.select();try{document.execCommand('copy');}catch(e2){}document.body.removeChild(ta);}
+  const orig=btn.textContent;btn.textContent='[✓]';btn.classList.add('ok');
+  setTimeout(()=>{btn.textContent=orig;btn.classList.remove('ok');},1500);
+}
+
+function copyMasterRpt(btn){
+  const cp=getCP(),cn=getCN();
+  const cmd="mkdir -p "+cp+"/reports && printf 'DSG TSCM MASTER REPORT\\nCase: "+cn+"\\nDate: '$(date)'\\n' > "+cp+"/reports/master_report.txt && for f in "+cp+"/scans/*.txt "+cp+"/wireless/*.txt; do [ -f \"$f\" ] && printf '\\n=== %s ===\\n' \"$f\" >> "+cp+"/reports/master_report.txt && cat \"$f\" >> "+cp+"/reports/master_report.txt; done && echo '✓ Saved: "+cp+"/reports/master_report.txt'";
+  copyToClip(btn,cmd);
+}
+
+function renderInfo(k){
+  const d=ID[k];if(!d)return;
+  const body=document.getElementById('ip-body');body.innerHTML='';
+  d.lines.forEach(line=>{
+    if(line.y==='blank'){body.appendChild(document.createElement('br'));return;}
+    const row=document.createElement('div');row.style.cssText='display:flex;align-items:flex-start;gap:6px;margin:1px 0;min-height:20px;';
+    const span=document.createElement('span');span.style.cssText='color:'+(CC[line.y]||'#b8d4e8')+';flex:1;word-break:break-all;';
+    const resolved=applyTokens(line.x);span.textContent=resolved;row.appendChild(span);
+    if(line.y==='cmd'||line.y==='url'){
+      const btn=document.createElement('button');btn.textContent='[cp]';btn.className='cpb';btn.onclick=(()=>{const t=resolved;return()=>copyToClip(btn,t);})();row.appendChild(btn);
+    }
+    if(line.y==='cmd'){
+      const rb=document.createElement('button');rb.textContent='[▶]';rb.className='runb';rb.title='Launch in terminal (requires Flask server)';rb.onclick=(()=>{const t=resolved;return()=>runCmd(rb,t);})();row.appendChild(rb);
+    }
+    body.appendChild(row);
+  });
+}
+
+function showInfo(k,btn){
+  const d=ID[k];if(!d)return;
+  document.querySelectorAll('.mb').forEach(b=>b.classList.remove('active'));
+  if(btn)btn.classList.add('active');
+  document.getElementById('ip-title').textContent=d.t;
+  document.getElementById('info-pane').style.display='block';
+  document.getElementById('console-pane').style.display='none';
+  document.getElementById('ctx-area').style.display='block';
+  curKey=k;renderInfo(k);
+}
+function ri(){if(curKey)renderInfo(curKey);}
+function showConsole(){
+  document.querySelectorAll('.mb').forEach(b=>b.classList.remove('active'));
+  document.getElementById('tscm-btn').classList.add('active');
+  document.getElementById('console-pane').style.display='block';
+  document.getElementById('info-pane').style.display='none';
+  document.getElementById('ctx-area').style.display='block';curKey=null;
+}
+function closeCtx(){document.getElementById('ctx-area').style.display='none';document.querySelectorAll('.mb').forEach(b=>b.classList.remove('active'));curKey=null;}
+function toggleVer(){const c=document.getElementById('vs-content'),t=document.getElementById('vtog');const open=c.classList.toggle('open');t.textContent=open?'▲ changelog':'▼ changelog';}
+
+function setStat(s){
+  const d=document.getElementById('s-dot'),l=document.getElementById('s-lbl');
+  const m={scanning:{bg:'#00c8d7',an:'db .8s ease-in-out infinite',tx:'SCANNING...',cl:'#00c8d7'},complete:{bg:'#3ddc84',an:'none',tx:'SCAN COMPLETE',cl:'#3ddc84'},error:{bg:'#ff4757',an:'none',tx:'ERROR',cl:'#ff4757'},idle:{bg:'#2e5070',an:'none',tx:'READY',cl:'#2e5070'}};
+  const c=m[s]||m.idle;d.style.background=c.bg;d.style.animation=c.an;l.textContent=c.tx;l.style.color=c.cl;
+}
+function addLine(text,type){
+  const body=document.getElementById('console');
+  const row=document.createElement('div');row.style.cssText='display:flex;gap:7px;';
+  if(text){const t=document.createElement('span');t.style.cssText='color:#1a3050;flex-shrink:0;font-size:11px;margin-top:1px;';t.textContent=new Date().toLocaleTimeString('en-US',{hour12:false});row.appendChild(t);}
+  const s=document.createElement('span');s.style.cssText='color:'+(CL[type]||'#b8d4e8')+';flex:1;word-break:break-all;';s.textContent=text||'\u00a0';row.appendChild(s);
+  body.appendChild(row);body.scrollTop=body.scrollHeight;
+  cLines.push({text,type,time:new Date().toLocaleTimeString('en-US',{hour12:false})});
+}
+function clearConsole(){
+  document.getElementById('console').innerHTML='<span style="color:#162536;">// CLEARED</span>';
+  document.getElementById('wc-row').style.display='none';document.getElementById('wc-row').innerHTML='';
+  document.getElementById('clr-btn').style.display='none';document.getElementById('s-ts').style.display='none';
+  document.getElementById('scan-btn').textContent='// BEGIN WAN INTAKE';
+  setStat('idle');scanning=false;wanData=null;cLines=[];
+}
+function gF(){return{examiner:document.getElementById('f-examiner').value,license:document.getElementById('f-license').value,client:document.getElementById('f-client').value,caseNum:document.getElementById('f-casenum').value,location:document.getElementById('f-location').value};}
+
+function downloadTxt(){
+  const f=gF(),ts=new Date().toLocaleString('en-US');
+  let txt='DSG TSCM TRIAGE v1.8.0 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
+  if(f.client)txt+='Client    : '+f.client+'\n';
+  if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
+  if(f.location)txt+='Location  : '+f.location+'\n';
+  txt+='Timestamp : '+ts+'\nCase Path : '+getCP()+'\nInterface : '+gI()+' / WiFi: '+gW()+' / Subnet: '+gS()+'\n'+'='.repeat(56)+'\n\n';
+  txt+=cLines.map(l=>'['+l.time+'] '+l.text).join('\n');
+  txt+='\n\n'+'='.repeat(56)+'\ndataspecialistgroup.com | (877) 787-7075 | FL PI A3200144\n';
+  const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([txt],{type:'text/plain'}));
+  a.download='DSG_TSCM_'+new Date().toISOString().slice(0,10)+'_'+(f.caseNum||'SCAN').replace(/\s/g,'_')+'.txt';
+  a.click();URL.revokeObjectURL(a.href);addLine('✓ TXT exported','success');
+}
+
+function exportPDF(){
+  if(!window.jspdf){addLine('// jsPDF loading — retry in a moment','error');return;}
+  const{jsPDF}=window.jspdf;
+  const doc=new jsPDF({orientation:'portrait',unit:'mm',format:'letter'});
+  const pw=doc.internal.pageSize.getWidth(),ph=doc.internal.pageSize.getHeight(),mg=18,cw=pw-mg*2;
+  let y=mg;const f=gF(),ts=new Date().toLocaleString('en-US');
+  const chk=()=>{if(y>ph-22){doc.addPage();doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');y=mg;}};
+  doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
+  doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
+  doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.0',pw/2,y+9,{align:'center'});
+  doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
+  doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
+  doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
+  doc.setTextColor(0,200,215);doc.setFontSize(7);doc.setFont('helvetica','bold');doc.text('CASE DETAILS',mg+5,y+6);
+  let dy=y+12;
+  [['Timestamp',ts],['Examiner',f.examiner+(f.license?' ('+f.license+')':'')],['Client',f.client],['Case No',f.caseNum],['Location',f.location],['Case Path',getCP()],['Interface',gI()+' / WiFi: '+gW()+' / Subnet: '+gS()]].forEach(([k,v])=>{
+    if(!v)return;doc.setFont('helvetica','normal');doc.setTextColor(74,110,138);doc.text(k+' :',mg+5,dy);doc.setTextColor(184,212,232);doc.text(String(v).substring(0,68),mg+34,dy);dy+=5;
+  });y+=58;
+  if(wanData){
+    doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,30,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,30,2,2,'S');
+    doc.setTextColor(0,200,215);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('WAN INTELLIGENCE',mg+5,y+6);
+    let wy=y+12;
+    [['IP',wanData.ip],['Org',wanData.org],['Location',wanData.city+', '+wanData.region+', '+wanData.country],['Timezone',wanData.timezone]].forEach(([k,v])=>{
+      if(!v)return;doc.setFont('helvetica','normal');doc.setTextColor(74,110,138);doc.text(k+' :',mg+5,wy);doc.setTextColor(0,200,215);doc.text(String(v),mg+22,wy);wy+=5;
+    });y+=36;
+  }
+  doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,10,2,2,'F');doc.setTextColor(0,200,215);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('CONSOLE OUTPUT',mg+5,y+7);y+=14;
+  doc.setFont('courier','normal');doc.setFontSize(6.5);
+  cLines.forEach(l=>{chk();const rgb={system:[53,85,112],success:[61,220,132],data:[184,212,232],warning:[240,168,50],error:[255,71,87],divider:[26,48,80],header:[0,200,215],meta:[74,110,138],link:[0,168,192],info:[46,80,112]};const c3=rgb[l.type]||[184,212,232];doc.setTextColor(c3[0],c3[1],c3[2]);doc.splitTextToSize('['+(l.time||'')+'] '+(l.text||''),cw-4).forEach(ln=>{chk();doc.text(ln,mg+2,y);y+=3.8;});});
+  y+=5;chk();
+  doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,33,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,33,2,2,'S');
+  doc.setTextColor(0,200,215);doc.setFont('helvetica','bold');doc.setFontSize(7);doc.text('EXAMINER CERTIFICATION',mg+5,y+6);
+  doc.setFont('helvetica','normal');doc.setFontSize(6.5);doc.setTextColor(74,110,138);
+  const cert='I, '+(f.examiner||'_______________')+' (FL PI License: '+(f.license||'_______________')+'), certify this examination was conducted on '+ts+' at '+(f.location||'_______________')+' and these findings are a true and accurate representation of data collected during this TSCM network intake examination.';
+  doc.splitTextToSize(cert,cw-10).forEach((ln,i)=>{doc.text(ln,mg+5,y+13+(i*4));});
+  doc.text('Signature: ____________________________   Date: ______________',mg+5,y+29);
+  doc.setFillColor(0,200,215);doc.rect(0,ph-2,pw,2,'F');doc.setTextColor(46,80,112);doc.setFontSize(6.5);doc.setFont('helvetica','normal');
+  doc.text('Surveillance Specialist Group, LLC  ·  dataspecialistgroup.com  ·  (877) 787-7075  ·  FL PI License A3200144',pw/2,ph-5,{align:'center'});
+  doc.save('DSG_TSCM_'+new Date().toISOString().slice(0,10)+'_'+(f.caseNum||'SCAN').replace(/\s/g,'_')+'.pdf');
+  addLine('✓ PDF exported','success');
+}
+
+function saveSession(){
+  const f=gF();
+  try{
+    localStorage.setItem('tscm:'+Date.now(),JSON.stringify({ts:new Date().toLocaleString('en-US'),...f,iface:gI(),wiface:gW(),subnet:gS(),casePath:getCP(),wanIp:wanData?wanData.ip:null,org:wanData?wanData.org:null,cLines:[...cLines]}));
+    addLine('✓ Session saved — click LOAD in Sessions panel','success');
+  }catch(e){addLine('✗ Storage: '+e.message,'error');}
+}
+function loadSessions(){
+  const list=document.getElementById('sess-list');
+  const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('tscm:'))keys.push(k);}
+  keys.sort().reverse();
+  if(!keys.length){list.innerHTML='<span style="color:#1e3450;font-family:\'Share Tech Mono\',monospace;font-size:11px;">// No sessions</span>';return;}
+  list.innerHTML='';
+  keys.forEach(k=>{
+    try{
+      const d=JSON.parse(localStorage.getItem(k));
+      const el=document.createElement('div');el.className='si-item';
+      el.innerHTML='<div style="font-family:\'Share Tech Mono\',monospace;font-size:12px;color:#00c8d7;">'+(d.wanIp||'No WAN data')+'</div><div style="font-size:11px;color:#2e5070;">'+(d.caseNum?'['+d.caseNum+'] ':'')+''+(d.client||'')+'</div><div style="font-size:11px;color:#1e3450;">'+d.ts+'</div>';
+      el.onclick=()=>restoreSession(d);list.appendChild(el);
+    }catch(e){}
+  });
+}
+function restoreSession(d){
+  if(d.examiner)document.getElementById('f-examiner').value=d.examiner;
+  if(d.license)document.getElementById('f-license').value=d.license;
+  if(d.client)document.getElementById('f-client').value=d.client;
+  if(d.caseNum)document.getElementById('f-casenum').value=d.caseNum;
+  if(d.location)document.getElementById('f-location').value=d.location;
+  if(d.iface)document.getElementById('si').value=d.iface;
+  if(d.subnet)document.getElementById('ssn').value=d.subnet;
+  updateCI();showConsole();
+  const body=document.getElementById('console');body.innerHTML='';cLines=[];wanData=null;
+  if(d.cLines)d.cLines.forEach(l=>{
+    const row=document.createElement('div');row.style.cssText='display:flex;gap:7px;';
+    const t=document.createElement('span');t.style.cssText='color:#1a3050;flex-shrink:0;font-size:11px;margin-top:1px;';t.textContent=l.time||'';
+    const s=document.createElement('span');s.style.cssText='color:'+(CL[l.type]||'#b8d4e8')+';flex:1;word-break:break-all;';s.textContent=l.text||'\u00a0';
+    row.appendChild(t);row.appendChild(s);body.appendChild(row);cLines.push(l);
+  });
+  body.scrollTop=body.scrollHeight;addLine('✓ Session restored','success');
+}
+function clearAllSess(){const keys=[];for(let i=0;i<localStorage.length;i++){const k=localStorage.key(i);if(k&&k.startsWith('tscm:'))keys.push(k);}keys.forEach(k=>localStorage.removeItem(k));loadSessions();}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+
+async function runScan(){
+  if(scanning)return;scanning=true;
+  const f=gF();showConsole();
+  const btn=document.getElementById('scan-btn');
+  btn.textContent='// SCANNING...';btn.classList.add('scanning');btn.disabled=true;
+  setStat('scanning');document.getElementById('clr-btn').style.display='none';
+  document.getElementById('wc-row').style.display='none';document.getElementById('wc-row').innerHTML='';
+  document.getElementById('console').innerHTML='';cLines=[];wanData=null;
+  const ts=new Date().toLocaleString('en-US');
+  document.getElementById('s-ts').textContent=ts;document.getElementById('s-ts').style.display='block';
+  addLine('═══════════════════════════════════════════════════════','divider');
+  addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
+  addLine('  d/b/a DATA SPECIALIST GROUP','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.0','header');
+  addLine('═══════════════════════════════════════════════════════','divider');
+  addLine('');
+  addLine('Timestamp : '+ts,'meta');
+  addLine('Case Path : '+getCP(),'meta');
+  addLine('Interface : '+gI()+' / WiFi: '+gW()+' / Subnet: '+gS(),'meta');
+  if(f.examiner)addLine('Examiner  : '+f.examiner+(f.license?' ('+f.license+')':''),'meta');
+  if(f.client)addLine('Client    : '+f.client,'meta');
+  if(f.caseNum)addLine('Case No   : '+f.caseNum,'meta');
+  if(f.location)addLine('Location  : '+f.location,'meta');
+  addLine('','info');await sleep(350);
+  try{
+    addLine('[1/4] Resolving WAN IP via api.ipify.org...','system');await sleep(280);
+    const ir=await fetch('https://api.ipify.org?format=json');if(!ir.ok)throw new Error('ipify HTTP '+ir.status);
+    const id=await ir.json();addLine('✓ WAN IP: '+id.ip,'success');await sleep(280);
+    addLine('[2/4] Fetching intelligence via ipinfo.io...','system');await sleep(300);
+    const inr=await fetch('https://ipinfo.io/'+id.ip+'/json');if(!inr.ok)throw new Error('ipinfo HTTP '+inr.status);
+    const info=await inr.json();wanData=info;
+    addLine('','info');addLine('── WAN IDENTITY ──────────────────────────────────────','divider');
+    for(const[k,v]of[['IP Address',info.ip],['Hostname',info.hostname||'N/A'],['ISP / Org',info.org||'N/A'],['City',info.city||'N/A'],['Region',info.region||'N/A'],['Country',info.country||'N/A'],['Coordinates',info.loc||'N/A'],['Timezone',info.timezone||'N/A']]){await sleep(65);addLine('  '+k.padEnd(13)+': '+v,'data');}
+    if(info.org&&['amazon','aws','digitalocean','vultr','linode','hetzner','ovh','choopa','m247'].some(k=>info.org.toLowerCase().includes(k))){addLine('','info');addLine('⚠ DATACENTER / VPS ASN DETECTED','warning');addLine('  Possible VPN, proxy, or covert exfil device','warning');}
+    await sleep(200);addLine('','info');addLine('[3/4] DNS note...','system');await sleep(150);
+    addLine('  Run dnsleaktest.com + ipleak.net from this network','info');
+    await sleep(200);addLine('','info');addLine('[4/4] Threat intelligence links...','system');await sleep(200);
+    addLine('  Shodan     → https://www.shodan.io/host/'+info.ip,'link');
+    addLine('  Censys     → https://search.censys.io/hosts/'+info.ip,'link');
+    addLine('  VirusTotal → https://www.virustotal.com/gui/ip-address/'+info.ip,'link');
+    addLine('  BGP/ASN    → https://bgp.he.net/ip/'+info.ip,'link');
+    addLine('  MXToolbox  → https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a'+info.ip,'link');
+    await sleep(200);addLine('','info');
+    addLine('═══════════════════════════════════════════════════════','divider');
+    addLine('  COMPLETE — ⬇ PDF  ◈ SAVE  ⊡ TXT  ⊞ RPT to export','success');
+    addLine('═══════════════════════════════════════════════════════','divider');
+    const cards=document.getElementById('wc-row');cards.style.display='flex';
+    [['WAN IP',info.ip],['ISP / ASN',(info.org||'N/A').substring(0,16)],['LOCATION',(info.city||'')+', '+(info.country||'')],['TIMEZONE',info.timezone||'N/A']].forEach(([l,v])=>{
+      const c=document.createElement('div');c.style.cssText='background:#0e1822;border:1px solid #162536;border-radius:5px;padding:8px 11px;flex:1;min-width:90px;';
+      c.innerHTML='<div style="font-size:10px;letter-spacing:.1em;color:#2e5070;margin-bottom:3px;">'+l+'</div><div style="font-family:\'Share Tech Mono\',monospace;font-size:13px;color:#00c8d7;font-weight:600;">'+v+'</div>';
+      cards.appendChild(c);
+    });
+    setStat('complete');btn.textContent='// RESCAN WAN';
+  }catch(err){addLine('','info');addLine('✗ '+err.message,'error');setStat('error');btn.textContent='// RETRY';}
+  btn.classList.remove('scanning');btn.disabled=false;
+  document.getElementById('clr-btn').style.display='block';scanning=false;
+}
+
+updateCI();
+loadSessions();
+</script>
+</body>
+</html>
