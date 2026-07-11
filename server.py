@@ -5,12 +5,19 @@ Surveillance Specialist Group, LLC
 Run: python3 ~/dsg-tscm/server.py
 Access: http://127.0.0.1:5555
 """
-import os, re, socket, subprocess, datetime
+import os, re, socket, subprocess, datetime, platform
 from flask import Flask, send_file, jsonify, request
 
 app = Flask(__name__)
 BASE = os.path.dirname(os.path.abspath(__file__))
 RUN_LOG = os.path.expanduser('~/DSG-TSCM/run_log.txt')
+
+# Where case output is written. Defaults to ~/DSG-TSCM/cases, but can be
+# redirected to an external drive (e.g. a USB stick on a Raspberry Pi) by
+# setting CASES_PATH — this spares the SD card from scan/pcap write wear.
+DEFAULT_CASES_PATH = os.path.expanduser('~/DSG-TSCM/cases')
+CASES_PATH = os.path.expanduser(os.environ.get('CASES_PATH', '').strip() or DEFAULT_CASES_PATH)
+CASES_IS_DEFAULT = (os.path.normpath(CASES_PATH) == os.path.normpath(DEFAULT_CASES_PATH))
 
 try:
     from flask_cors import CORS
@@ -111,6 +118,21 @@ def run_command():
     except Exception as e:
         return jsonify({'output': '', 'returncode': -1, 'error': str(e)})
 
+@app.route('/api/cases-path')
+def cases_path():
+    return jsonify({'cases_path': CASES_PATH, 'is_default': CASES_IS_DEFAULT})
+
+@app.route('/api/config')
+def config():
+    return jsonify({
+        'cases_path': CASES_PATH,
+        'is_default': CASES_IS_DEFAULT,
+        'hostname': socket.gethostname(),
+        'platform': platform.platform(),
+        'system': platform.system(),
+        'machine': platform.machine(),
+    })
+
 @app.route('/api/local-ip')
 def local_ip():
     try:
@@ -124,5 +146,6 @@ def local_ip():
 
 if __name__ == '__main__':
     print('\n  DSG TSCM Triage v1.8.2 — Flask Server')
-    print('  http://127.0.0.1:5555\n')
+    print('  http://127.0.0.1:5555')
+    print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     app.run(host='127.0.0.1', port=5555, debug=False)

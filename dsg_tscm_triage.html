@@ -141,6 +141,9 @@ html,body{background:#040810;min-height:100vh;}
         <span class="ci-cmd" id="ci-cmd">mkdir -p ~/DSG-TSCM/cases/UNASSIGNED/{pcaps,scans,wireless,screenshots,reports}</span>
         <button class="cpb" onclick="copyCaseInit(this)">[cp]</button>
       </div>
+      <div id="cases-notice" style="display:none;margin-top:8px;padding:5px 8px;border:1px solid #7a5410;border-radius:3px;background:#1a1305;font-family:'Share Tech Mono',monospace;font-size:10px;color:#f0a832;line-height:1.4;">
+        <span style="font-weight:bold;">⚠ Cases →</span> <span id="cases-notice-path"></span>
+      </div>
     </div>
     <!-- SESSIONS -->
     <div style="padding:8px 12px;border-bottom:1px solid #14263a;">
@@ -321,14 +324,33 @@ html,body{background:#040810;min-height:100vh;}
 const CC={cmd:'#00c8d7',desc:'#4a6e8a',comment:'#355570',warn:'#f0a832',url:'#00a8c0'};
 const CL={system:'#355570',success:'#3ddc84',data:'#b8d4e8',warning:'#f0a832',error:'#ff4757',divider:'#1a3050',header:'#00c8d7',meta:'#4a6e8a',link:'#00a8c0',info:'#2e5070'};
 let curKey=null,scanning=false,wanData=null,cLines=[];
+// Base folder for case output. Overridden by the server's /api/config when
+// CASES_PATH points at an external drive (Raspberry Pi SD-card protection).
+let casesBase='~/DSG-TSCM/cases';
 
 function gI(){return document.getElementById('si').value||'eth0';}
 function gW(){const el=document.getElementById('swi');const v=(el&&el.value)||'wlan1';return v.startsWith('wlan')?v:'wlan1';}
 function gS(){return document.getElementById('ssn').value||'192.168.1.0/24';}
 function getCN(){return(document.getElementById('f-casenum').value.trim().replace(/\s+/g,'_'))||'UNASSIGNED';}
-function getCP(){return'~/DSG-TSCM/cases/'+getCN();}
+function getCP(){return casesBase.replace(/\/+$/,'')+'/'+getCN();}
 function applyTokens(t){const w=gW(),cp=getCP(),cn=getCN();return t.replace(/\{IFACE\}/g,gI()).replace(/\{WIFACE\}mon/g,w+'mon').replace(/\{WIFACE\}/g,w).replace(/\{SUBNET\}/g,gS()).replace(/\{CASE_PATH\}/g,cp).replace(/\{CASE_NUMBER\}/g,cn);}
 function updateCI(){document.getElementById('ci-cmd').textContent='mkdir -p '+getCP()+'/{pcaps,scans,wireless,screenshots,reports}';}
+
+// Ask the local server where case output is going. If it has been redirected
+// to an external drive (CASES_PATH), point {CASE_PATH} at it and flag it in
+// the interface panel so the examiner knows output is not on the SD card.
+function loadConfig(){
+  fetch('/api/config').then(r=>r.json()).then(d=>{
+    if(!d||!d.cases_path)return;
+    if(!d.is_default){
+      casesBase=d.cases_path;
+      const n=document.getElementById('cases-notice');
+      document.getElementById('cases-notice-path').textContent=d.cases_path;
+      if(n)n.style.display='block';
+    }
+    updateCI();ri();
+  }).catch(()=>{/* opened as file:// or server offline — keep default path */});
+}
 function copyCaseInit(btn){copyToClip(btn,document.getElementById('ci-cmd').textContent);}
 
 function detectIfaces(btn){
@@ -1218,6 +1240,7 @@ async function runScan(){
 
 updateCI();
 loadSessions();
+loadConfig();
 </script>
 </body>
 </html>
