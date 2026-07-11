@@ -1,15 +1,16 @@
 #!/usr/bin/env python3
 """
-DSG TSCM Triage v1.7.0 — Local Flask Server
+DSG TSCM Triage v1.8.2 — Local Flask Server
 Surveillance Specialist Group, LLC
 Run: python3 ~/dsg-tscm/server.py
 Access: http://127.0.0.1:5555
 """
-import os, re, socket, subprocess
-from flask import Flask, send_file, jsonify
+import os, re, socket, subprocess, datetime
+from flask import Flask, send_file, jsonify, request
 
 app = Flask(__name__)
 BASE = os.path.dirname(os.path.abspath(__file__))
+RUN_LOG = os.path.expanduser('~/DSG-TSCM/run_log.txt')
 
 try:
     from flask_cors import CORS
@@ -72,6 +73,44 @@ def interfaces():
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+@app.route('/api/run', methods=['POST'])
+def run_command():
+    # Security measure: localhost only. The server also binds to 127.0.0.1,
+    # but reject explicitly in case it is ever re-hosted behind a proxy.
+    if request.remote_addr not in ('127.0.0.1', '::1'):
+        return jsonify({'output': '', 'returncode': -1,
+                        'error': 'Forbidden: requests accepted from localhost only'}), 403
+
+    data = request.get_json(silent=True) or {}
+    command = (data.get('command') or data.get('cmd') or '').strip()
+    if not command:
+        return jsonify({'output': '', 'returncode': -1,
+                        'error': 'Empty command — nothing to run'}), 400
+
+    # Audit log: timestamp every command execution for case accountability
+    try:
+        os.makedirs(os.path.dirname(RUN_LOG), exist_ok=True)
+        with open(RUN_LOG, 'a') as fh:
+            fh.write('[%s] %s\n' % (datetime.datetime.now().isoformat(timespec='seconds'), command))
+    except Exception:
+        pass  # never fail the run just because logging failed
+
+    try:
+        result = subprocess.run(command, shell=True, capture_output=True,
+                                text=True, timeout=300)
+        output = (result.stdout or '') + (result.stderr or '')
+        return jsonify({'output': output, 'returncode': result.returncode, 'error': None})
+    except subprocess.TimeoutExpired as e:
+        partial = ''
+        if e.stdout:
+            partial += e.stdout if isinstance(e.stdout, str) else e.stdout.decode('utf-8', 'replace')
+        if e.stderr:
+            partial += e.stderr if isinstance(e.stderr, str) else e.stderr.decode('utf-8', 'replace')
+        return jsonify({'output': partial, 'returncode': -1,
+                        'error': 'Command timed out after 300 seconds'})
+    except Exception as e:
+        return jsonify({'output': '', 'returncode': -1, 'error': str(e)})
+
 @app.route('/api/local-ip')
 def local_ip():
     try:
@@ -84,6 +123,6 @@ def local_ip():
         return jsonify({'error': str(e)}), 500
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.7.0 — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.2 — Flask Server')
     print('  http://127.0.0.1:5555\n')
     app.run(host='127.0.0.1', port=5555, debug=False)

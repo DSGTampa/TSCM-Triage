@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.1</title>
+<title>DSG TSCM Triage v1.8.2</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -52,6 +52,14 @@ html,body{background:#040810;min-height:100vh;}
 .scan-btn-sm{background:#0a1520;border:1px solid #162536;border-radius:3px;color:#2e5070;cursor:pointer;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;outline:none;transition:all .12s;}
 .runb{background:#3ddc8414;border:1px solid #3ddc8440;border-radius:3px;color:#2e5070;cursor:pointer;padding:1px 6px;font-size:10px;font-family:'Share Tech Mono',monospace;line-height:1.7;transition:all .12s;white-space:nowrap;outline:none;flex-shrink:0;}
 .runb:hover{color:#3ddc84;border-color:#3ddc8480;background:#3ddc8420;}
+.runb:disabled{cursor:wait;opacity:.85;}
+.run-spin{display:inline-block;animation:spin .7s linear infinite;}
+@keyframes spin{to{transform:rotate(360deg);}}
+.run-out{margin:3px 0 9px 0;border:1px solid #14324a;border-radius:5px;background:#060b12;overflow:hidden;}
+.run-out-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 10px;background:#08131e;border-bottom:1px solid #12283c;}
+.run-out-cmd{font-family:'Share Tech Mono',monospace;font-size:11px;color:#00c8d7;word-break:break-all;flex:1;}
+.run-out-body{margin:0;padding:9px 12px;max-height:340px;overflow:auto;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.6;color:#b8d4e8;white-space:pre-wrap;word-break:break-all;background:#060b12;}
+.run-out-status{padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.04em;border-top:1px solid #12283c;background:#08131e;}
 .scan-btn-sm:hover{color:#00c8d7;border-color:#00c8d755;}
 .main-area{display:flex;}
 .left-col{width:262px;min-width:262px;height:520px;overflow-y:auto;border-right:1px solid #14263a;}
@@ -74,7 +82,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
   <div style="display:flex;justify-content:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.1</span>
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.2</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
   </div>
 </div>
@@ -255,7 +263,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.1 — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.2 — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -274,13 +282,13 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.1 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.2 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
     <div style="min-width:200px;">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.1 — July 2026</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.2 — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Interface simplified to single dropdown: eth0 / wlan0 / wlan1</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">ENT Enterprise section — 10 advanced scan panels</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">DEAUTH DISC panel in Wireless section — post-router-down device detection</span></div>
@@ -932,19 +940,53 @@ const ID={
 };
 
 async function runCmd(btn,cmd){
-  const orig=btn.textContent;
-  btn.textContent='[▶...]';btn.style.color='#3ddc84';
+  const row=btn.parentElement;
+  // Replace any existing output pane already attached to this command row
+  const existing=row.nextElementSibling;
+  if(existing&&existing.classList&&existing.classList.contains('run-out'))existing.remove();
+
+  const orig=btn.innerHTML;
+  btn.innerHTML='[<span class="run-spin">◍</span>]';btn.style.color='#3ddc84';btn.disabled=true;
+
+  // Build the expandable output pane below the command row
+  const pane=document.createElement('div');pane.className='run-out';
+  const head=document.createElement('div');head.className='run-out-head';
+  const label=document.createElement('span');label.className='run-out-cmd';label.textContent='$ '+cmd;
+  const closeBtn=document.createElement('button');closeBtn.textContent='[close]';closeBtn.className='cpb';
+  closeBtn.onclick=()=>{pane.remove();};
+  head.appendChild(label);head.appendChild(closeBtn);
+  const outBody=document.createElement('pre');outBody.className='run-out-body';outBody.textContent='// running — up to 300s...';
+  pane.appendChild(head);pane.appendChild(outBody);
+  row.parentNode.insertBefore(pane,row.nextSibling);
+  pane.scrollIntoView({block:'nearest',behavior:'smooth'});
+
   try{
     const res=await fetch('http://localhost:5555/api/run',{
       method:'POST',headers:{'Content-Type':'application/json'},
-      body:JSON.stringify({cmd:cmd}),signal:AbortSignal.timeout(3000)
+      body:JSON.stringify({command:cmd}),signal:AbortSignal.timeout(305000)
     });
-    btn.textContent=res.ok?'[▶ ✓]':'[▶ ✗]';
-    btn.style.color=res.ok?'#3ddc84':'#ff4757';
+    const data=await res.json();
+    const rc=(typeof data.returncode==='number')?data.returncode:-1;
+    const ok=(rc===0&&!data.error);
+    outBody.textContent=(data.output&&data.output.length)?data.output:'(no output)';
+    outBody.scrollTop=outBody.scrollHeight; // auto-scroll to newest output
+
+    const status=document.createElement('div');status.className='run-out-status';
+    if(data.error){status.textContent='● error: '+data.error+'  (exit '+rc+')';status.style.color='#ff4757';}
+    else if(ok){status.textContent='● exit 0 — completed';status.style.color='#3ddc84';}
+    else{status.textContent='● exit '+rc+' — non-zero return';status.style.color='#ff4757';}
+    pane.appendChild(status);
+
+    btn.innerHTML=orig;btn.style.color=ok?'#3ddc84':'#ff4757';
   }catch(e){
-    btn.textContent='[▶ ✗]';btn.style.color='#ff4757';
+    // Fetch failed / timed out — most commonly the Flask server is not running
+    outBody.style.color='#f0a832';
+    outBody.textContent='Start Flask server to use run button: bash ~/dsg-tscm/launch_server.sh';
+    btn.innerHTML=orig;btn.style.color='#ff4757';
   }
-  setTimeout(()=>{btn.textContent=orig;btn.style.color='';},2000);
+  btn.disabled=false;
+  pane.scrollIntoView({block:'nearest',behavior:'smooth'});
+  setTimeout(()=>{btn.style.color='';},2500);
 }
 
 async function copyToClip(btn,text){
@@ -1023,7 +1065,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.1 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.2 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1046,7 +1088,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.1',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.2',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1135,7 +1177,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.1','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.2','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
@@ -1147,23 +1189,17 @@ async function runScan(){
   if(f.location)addLine('Location  : '+f.location,'meta');
   addLine('','info');await sleep(350);
   try{
-    addLine('[1/4] Resolving WAN IP via api.ipify.org...','system');await sleep(280);
+    addLine('[1/3] Resolving WAN IP via api.ipify.org...','system');await sleep(280);
     const ir=await fetch('https://api.ipify.org?format=json');if(!ir.ok)throw new Error('ipify HTTP '+ir.status);
     const id=await ir.json();addLine('✓ WAN IP: '+id.ip,'success');await sleep(280);
-    addLine('[2/4] Fetching intelligence via ipinfo.io...','system');await sleep(300);
+    addLine('[2/3] Fetching intelligence via ipinfo.io...','system');await sleep(300);
     const inr=await fetch('https://ipinfo.io/'+id.ip+'/json');if(!inr.ok)throw new Error('ipinfo HTTP '+inr.status);
     const info=await inr.json();wanData=info;
     addLine('','info');addLine('── WAN IDENTITY ──────────────────────────────────────','divider');
     for(const[k,v]of[['IP Address',info.ip],['Hostname',info.hostname||'N/A'],['ISP / Org',info.org||'N/A'],['City',info.city||'N/A'],['Region',info.region||'N/A'],['Country',info.country||'N/A'],['Coordinates',info.loc||'N/A'],['Timezone',info.timezone||'N/A']]){await sleep(65);addLine('  '+k.padEnd(13)+': '+v,'data');}
     if(info.org&&['amazon','aws','digitalocean','vultr','linode','hetzner','ovh','choopa','m247'].some(k=>info.org.toLowerCase().includes(k))){addLine('','info');addLine('⚠ DATACENTER / VPS ASN DETECTED','warning');addLine('  Possible VPN, proxy, or covert exfil device','warning');}
-    await sleep(200);addLine('','info');addLine('[3/4] DNS note...','system');await sleep(150);
+    await sleep(200);addLine('','info');addLine('[3/3] DNS note...','system');await sleep(150);
     addLine('  Run dnsleaktest.com + ipleak.net from this network','info');
-    await sleep(200);addLine('','info');addLine('[4/4] Threat intelligence links...','system');await sleep(200);
-    addLine('  Shodan     → https://www.shodan.io/host/'+info.ip,'link');
-    addLine('  Censys     → https://search.censys.io/hosts/'+info.ip,'link');
-    addLine('  VirusTotal → https://www.virustotal.com/gui/ip-address/'+info.ip,'link');
-    addLine('  BGP/ASN    → https://bgp.he.net/ip/'+info.ip,'link');
-    addLine('  MXToolbox  → https://mxtoolbox.com/SuperTool.aspx?action=blacklist%3a'+info.ip,'link');
     await sleep(200);addLine('','info');
     addLine('═══════════════════════════════════════════════════════','divider');
     addLine('  COMPLETE — ⬇ PDF  ◈ SAVE  ⊡ TXT  ⊞ RPT to export','success');
