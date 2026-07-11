@@ -7,7 +7,6 @@ Access: http://127.0.0.1:5555
 """
 import os, re, socket, subprocess
 from flask import Flask, send_file, jsonify
-from flask_cors import CORS
 
 app = Flask(__name__)
 BASE = os.path.dirname(os.path.abspath(__file__))
