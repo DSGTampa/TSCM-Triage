@@ -58,6 +58,33 @@ bash install_dsg_tscm.sh
 
 The application opens at `http://127.0.0.1:5555` in Chromium (app mode) or Firefox. With the Flask server running, the **↺ SCAN** button auto-detects available network interfaces and subnets.
 
+## Updating
+
+New releases are published to this repository. To pull the latest changes onto your machine and redeploy them to the runtime location (`~/dsg-tscm`):
+
+**Option A — one command (recommended):**
+
+```bash
+cd TSCM-Triage        # the folder you cloned into
+git pull
+bash update.sh        # copies updated files to ~/dsg-tscm and restarts the server if running
+```
+
+**Option B — manual:**
+
+```bash
+cd TSCM-Triage
+git pull                                      # fetch the latest code
+cp dsg_tscm_triage.html ~/dsg-tscm/           # deploy the updated UI
+cp server.py ~/dsg-tscm/                       # deploy the updated Flask server
+pkill -f "python3 server.py" 2>/dev/null       # stop the running server (if any)
+bash ~/dsg-tscm/launch_server.sh               # relaunch with the new version
+```
+
+After updating, hard-refresh the browser (**Ctrl+Shift+R**) so the new UI loads instead of a cached copy. You can confirm the running version in the badge at the top of the page and in the footer (currently **v1.8.2**).
+
+> **Tip:** run `git log --oneline -5` after pulling to see what changed in the latest releases.
+
 ## Legal
 
 For use by licensed professionals only. FL PI License A3200144. Surveillance Specialist Group, LLC. [dataspecialistgroup.com](https://dataspecialistgroup.com)
