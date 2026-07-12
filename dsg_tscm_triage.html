@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.3</title>
+<title>DSG TSCM Triage v1.8.4</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -90,7 +90,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
   <div style="display:flex;justify-content:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.3</span>
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
   </div>
 </div>
@@ -191,6 +191,7 @@ html,body{background:#040810;min-height:100vh;}
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('host',this)"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HOST SCAN</span></button>
         <button class="mb" onclick="showInfo('port',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PORT SCAN</span></button>
+        <button class="mb" onclick="showInfo('vlan',this)"><span style="font-size:15px;">⊪</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">VLAN DISC</span></button>
         <button class="mb" onclick="showInfo('oui',this)"><span style="font-size:15px;">⬡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">OUI CHECK</span></button>
         <button class="mb" onclick="showInfo('onvif',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ONVIF</span></button>
         <button class="mb" onclick="showInfo('traffic',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TRAFFIC ANLS</span></button>
@@ -205,10 +206,12 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div style="margin-bottom:13px;">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊙</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">CAMERAS</span><div class="sl"></div></div>
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊙</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">IOT DISCOVERY</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('netcam',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">NETWORK CAM</span></button>
         <button class="mb" onclick="showInfo('hiddencam',this)"><span style="font-size:15px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HIDDEN CAM</span></button>
+        <button class="mb" onclick="showInfo('voice',this)"><span style="font-size:15px;">◍</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">VOICE ASST</span></button>
+        <button class="mb" onclick="showInfo('smarttv',this)"><span style="font-size:15px;">▭</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">SMART TV</span></button>
         <button class="mb" onclick="showInfo('netkvm',this)"><span style="font-size:15px;">⌨</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">NETWORK KVM</span></button>
       </div>
     </div>
@@ -216,6 +219,10 @@ html,body{background:#040810;min-height:100vh;}
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⌖</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">HACKER HUNTING</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('hackhw',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⌘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HACK HW</span></button>
+        <button class="mb" onclick="showInfo('hh_rdhcp',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ROGUE DHCP</span></button>
+        <button class="mb" onclick="showInfo('hh_arp',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">ARP POISON</span></button>
+        <button class="mb" onclick="showInfo('hh_ssl',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊟</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">SSL INTCPT</span></button>
+        <button class="mb" onclick="showInfo('hh_dns',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DNS TUNNEL</span></button>
       </div>
     </div>
     <div style="margin-bottom:13px;">
@@ -281,7 +288,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.3 — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4 — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -300,11 +307,18 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.3 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4 — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">CAMERAS section renamed IOT DISCOVERY — added VOICE ASST + SMART TV panels</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACK HW: Hak5 OUI 00:13:37 + Cloud C2 DNS check + Hak5 port scan</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACKER HUNTING: ROGUE DHCP, ARP POISON, SSL INTCPT, DNS TUNNEL panels</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">NETWORK DISCOVERY: VLAN DISC panel — 802.1Q, CDP/LLDP, VLAN hop scan</span></div>
+    </div>
     <div style="min-width:200px;">
       <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.3 — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACKER HUNTING section — HACK HW pentest/covert hardware detection panel</span></div>
@@ -423,6 +437,23 @@ const ID={
     {y:'desc',x:'554   RTSP stream         3702  ONVIF/WS-Discovery'},
     {y:'desc',x:'8554  Secondary RTSP      9000  Hikvision SDK'},
     {y:'desc',x:'34567 Dahua DVR           37777 Dahua proprietary'},
+  ]},
+  vlan:{t:'// VLAN DISCOVERY',lines:[
+    {y:'desc',x:'Detects VLAN segmentation and 802.1Q tagged traffic. Identifies whether the network is segmented and if devices are crossing VLAN boundaries — a critical finding in corporate and facility sweeps.'},
+    {y:'blank'},
+    {y:'comment',x:'// 802.1Q TAG DETECTION:'},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo tcpdump -i {IFACE} -nn 'ether[12:2] == 0x8100' -c 100 -w {CASE_PATH}/scans/vlan_tagged.pcap 2>&1 | tee {CASE_PATH}/scans/vlan_tagged.txt"},
+    {y:'desc',x:'↳ Captures up to 100 802.1Q tagged frames — saves pcap and log to case folder'},
+    {y:'blank'},
+    {y:'comment',x:'// VLAN HOP SCAN:'},
+    {y:'cmd',x:'sudo nmap --script=broadcast-listener -e {IFACE} -oA {CASE_PATH}/scans/vlan_scan 2>&1 | tee {CASE_PATH}/scans/vlan_discovery.txt'},
+    {y:'desc',x:'↳ Passively listens for broadcast traffic revealing additional VLANs'},
+    {y:'blank'},
+    {y:'comment',x:'// CDP/LLDP LISTENER (60 sec):'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "cdp or lldp" -T fields -e cdp.deviceid -e lldp.tlv.system.name -e lldp.tlv.system.desc 2>/dev/null | tee {CASE_PATH}/scans/cdp_lldp.txt'},
+    {y:'desc',x:'↳ Captures switch/infrastructure announcements revealing device IDs and VLAN config'},
+    {y:'blank'},
+    {y:'warn',x:'△ CDP and LLDP packets reveal network infrastructure device identities and VLAN configurations. Presence of 802.1Q tagged frames on an access port indicates VLAN hopping potential or misconfiguration.'},
   ]},
   oui:{t:'// OUI MAC FINGERPRINTING',lines:[
     {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
@@ -868,12 +899,58 @@ const ID={
       {y:'desc',x:'Rose Electronics     00:10:16'},
     ]},
   ]},
+  voice:{t:'// VOICE ASSISTANT DETECTION',lines:[
+    {y:'desc',x:'Detects always-on microphone devices including smart speakers and voice assistants. These devices continuously monitor audio and represent a significant privacy risk in any sensitive environment.'},
+    {y:'blank'},
+    {y:'comment',x:'// VOICE ASSISTANT OUI SCAN:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "fc:65:de|44:65:0d|f0:81:73|00:fc:8b|ac:63:be|74:75:48|54:60:09|f4:f5:d8|48:d6:d5|20:df:b9|a4:77:33|98:9e:63|dc:2c:6e|8c:85:90|00:0e:58|5c:aa:fd|94:9f:3e|50:dc:e7|b4:7c:9c|cc:f4:11|68:37:e9|4c:ef:c0" | tee {CASE_PATH}/scans/voice_assistant_hits.txt'},
+    {y:'desc',x:'↳ Flags known voice-assistant vendor OUIs in live scan — saves full results and hits'},
+    {y:'blank'},
+    {y:'comment',x:'// mDNS VOICE ASSISTANT DISCOVERY:'},
+    {y:'cmd',x:'sudo avahi-browse -at 2>/dev/null | grep -iE "amazon|echo|alexa|google|home|nest|apple|homepod|sonos" | tee {CASE_PATH}/scans/voice_mdns.txt'},
+    {y:'desc',x:'↳ Catches voice assistants that advertise themselves via mDNS/Bonjour'},
+    {y:'blank'},
+    {y:'banner',collapsed:true,h:'// TARGET OUI REFERENCE',lines:[
+      {y:'desc',x:'Amazon Echo/Alexa  FC:65:DE / 44:65:0D / F0:81:73 / 00:FC:8B / AC:63:BE / 74:75:48'},
+      {y:'desc',x:'Google Home/Nest   54:60:09 / F4:F5:D8 / 48:D6:D5 / 20:DF:B9 / A4:77:33'},
+      {y:'desc',x:'Apple HomePod      98:9E:63 / DC:2C:6E / 8C:85:90'},
+      {y:'desc',x:'Sonos (mic)        00:0E:58 / 5C:AA:FD / 94:9F:3E'},
+    ]},
+    {y:'blank'},
+    {y:'warn',x:'△ Any voice assistant in a boardroom, executive office, or SCIF-adjacent space is a critical finding regardless of who owns it. These devices stream audio to cloud infrastructure continuously.'},
+  ]},
+  smarttv:{t:'// SMART TV / DISPLAY DETECTION',lines:[
+    {y:'desc',x:'Detects network-connected televisions and displays with cameras, microphones, and ACR (Automatic Content Recognition) telemetry. Smart TVs exfiltrate viewing data and may have always-on cameras and microphones.'},
+    {y:'blank'},
+    {y:'comment',x:'// SMART TV OUI SCAN:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:07:ab|00:12:fb|00:15:99|8c:77:12|bc:14:85|cc:05:1b|00:1e:75|00:22:a9|58:a2:b5|a8:23:fe|c4:36:6c|00:01:4a|00:13:a9|ac:9b:0a|f0:bf:97|00:09:bf|b8:3e:59|cc:6d:a0|d8:31:cf|08:05:81|00:19:c0|00:1f:eb|c4:65:16|50:d4:f7" | tee {CASE_PATH}/scans/smarttv_hits.txt'},
+    {y:'desc',x:'↳ Flags known smart-TV vendor OUIs in live scan — saves full results and hits'},
+    {y:'blank'},
+    {y:'comment',x:'// SMART TV PORT SCAN:'},
+    {y:'cmd',x:'sudo nmap -sV -p 80,443,1925,4352,7000,7100,8001,8008,8009,8080,9080 --open {SUBNET} -oA {CASE_PATH}/scans/smarttv_portscan'},
+    {y:'desc',x:'↳ Fingerprints smart-TV control/cast ports across the subnet — saves results'},
+    {y:'blank'},
+    {y:'comment',x:'// mDNS TV DISCOVERY:'},
+    {y:'cmd',x:'sudo avahi-browse -at 2>/dev/null | grep -iE "samsung|lg|sony|roku|vizio|tcl|hisense|philips" | tee {CASE_PATH}/scans/tv_mdns.txt'},
+    {y:'desc',x:'↳ Catches smart TVs that advertise themselves via mDNS/Bonjour'},
+    {y:'blank'},
+    {y:'banner',collapsed:true,h:'// TARGET OUI REFERENCE',lines:[
+      {y:'desc',x:'Samsung  00:07:AB / 00:12:FB / 8C:77:12 / BC:14:85 / CC:05:1B'},
+      {y:'desc',x:'LG       00:1E:75 / 00:22:A9 / 58:A2:B5 / A8:23:FE / C4:36:6C'},
+      {y:'desc',x:'Sony     00:01:4A / 00:13:A9 / AC:9B:0A / F0:BF:97'},
+      {y:'desc',x:'Roku     00:09:BF / B8:3E:59 / CC:6D:A0 / D8:31:CF / 08:05:81'},
+      {y:'desc',x:'Vizio    00:19:C0 / 00:1F:EB'},
+      {y:'desc',x:'TCL      C4:65:16 / 50:D4:F7'},
+    ]},
+    {y:'blank'},
+    {y:'warn',x:'△ Smart TVs with cameras should be treated as surveillance devices in any sensitive environment. Port 8008/8009 indicates Chromecast/Google Cast. Port 1925 is LG\'s remote control API. Port 4352 is used by Samsung SmartTV.'},
+  ]},
   hackhw:{t:'// HACK HARDWARE DETECTION — HACKER HUNTING',lines:[
     {y:'warn',x:'// SCOPE NOTE: Run based on engagement scope and time constraints'},
     {y:'warn',x:'// Finding a device OUI does not prove malicious intent — it documents presence for further investigation'},
     {y:'blank'},
     {y:'comment',x:'// STEP 1 — OUI cross-reference for known pentest and covert hardware:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|00:13:37|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
     {y:'desc',x:'↳ Flags known pentest and covert device OUIs — saves all results and hits separately'},
     {y:'blank'},
     {y:'desc',x:'Raspberry Pi    B8:27:EB / DC:A6:32 / E4:5F:01 / D8:3A:DD / 2C:CF:67'},
@@ -881,6 +958,7 @@ const ID={
     {y:'desc',x:'Alfa Network    00:C0:CA  (WiFi Pineapple adapter, TSCM/pentest WiFi cards)'},
     {y:'desc',x:'GL.iNet         94:83:C4 / B4:FB:E4  (rogue AP hardware, travel routers)'},
     {y:'desc',x:'Hak5 Pineapple  00:0C:E7  (Mark VII MediaTek chipset)'},
+    {y:'desc',x:'Hak5 Implants   00:13:37  (Packet Squirrel, Shark Jack, LAN Turtle, Signal Owl)'},
     {y:'desc',x:'Arduino LLC     00:21:86  (Arduino with WiFi shield)'},
     {y:'desc',x:'FlipperZero BLE 80:E1:26  (appears in BLE scans not ARP)'},
     {y:'blank'},
@@ -906,7 +984,77 @@ const ID={
     {y:'cmd',x:"if [ -f {CASE_PATH}/wireless/pre_deauth-01.csv ] && [ -f {CASE_PATH}/wireless/post_deauth-01.csv ]; then grep -v \"$(cat {CASE_PATH}/wireless/pre_deauth-01.csv | awk -F',' 'NR>2{print $1}' | sort -u | tr '\\n' '|' | sed 's/|$//')\" {CASE_PATH}/wireless/post_deauth-01.csv | tee {CASE_PATH}/scans/rogue_ap_candidates.txt; else echo '[!] pre/post_deauth captures not found - run the DEAUTH DISC panel pre + post captures first'; fi"},
     {y:'desc',x:'↳ Diffs DEAUTH pre vs post captures for APs not present before — requires DEAUTH DISC pre + post captures first'},
     {y:'blank'},
+    {y:'comment',x:'// STEP 7 — HAK5 CLOUD C2 DNS CHECK — detect devices phoning home to Cloud C2:'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "dns.qry.name contains \\"hak5.org\\"" 2>/dev/null | tee {CASE_PATH}/scans/hak5_c2_dns.txt'},
+    {y:'desc',x:'↳ Detects Hak5 devices phoning home to Cloud C2 — catches USB-only implants with no ARP presence'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 8 — HAK5 PORT SCAN — Hak5 management interfaces and default subnets:'},
+    {y:'cmd',x:'sudo nmap -sV -p 22,80,443,1471 --open {SUBNET} -oA {CASE_PATH}/scans/hak5_portscan && sudo nmap -sV -p 22,80,443,1471 --open 172.16.42.0/24 -oA {CASE_PATH}/scans/hak5_pineapple_subnet'},
+    {y:'desc',x:'↳ Scans for Hak5 management interfaces and the Pineapple default 172.16.42.0/24 subnet'},
+    {y:'blank'},
+    {y:'warn',x:'△ Hak5 OUI 00:13:37 covers Packet Squirrel, Shark Jack, LAN Turtle, and Signal Owl. Screen Crab and Key Croc are USB-only — detect via Cloud C2 DNS check above. Port 1471 is WiFi Pineapple management.'},
+    {y:'blank'},
     {y:'warn',x:'// DOCUMENT ALL FINDINGS: OUI match alone is circumstantial — combine with port scan, SSID, and behavioral evidence for defensible documentation'},
+  ]},
+  hh_rdhcp:{t:'// ROGUE DHCP DETECTION',lines:[
+    {y:'desc',x:'Detects unauthorized DHCP servers that may be redirecting network traffic. A rogue DHCP server is a strong indicator of active network manipulation.'},
+    {y:'blank'},
+    {y:'comment',x:'// DHCP DISCOVER SCAN:'},
+    {y:'cmd',x:'sudo nmap --script broadcast-dhcp-discover -e {IFACE} 2>&1 | tee {CASE_PATH}/scans/rogue_dhcp.txt'},
+    {y:'desc',x:'↳ Broadcasts a DHCP discover and records every server that responds'},
+    {y:'blank'},
+    {y:'comment',x:'// DHCP SERVER MONITOR (60 sec):'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "bootp.type == 2" -T fields -e ip.src -e bootp.server -e bootp.option.dhcp_server_id 2>/dev/null | tee {CASE_PATH}/scans/dhcp_servers.txt'},
+    {y:'desc',x:'↳ Passively logs all DHCP server replies seen on the wire for 60 seconds'},
+    {y:'blank'},
+    {y:'warn',x:'△ More than one DHCP server on a network is a critical finding. The legitimate server is typically the router IP. Any additional server warrants immediate investigation.'},
+  ]},
+  hh_arp:{t:'// ARP POISONING DETECTION',lines:[
+    {y:'desc',x:'Monitors for ARP spoofing and MAC/IP binding changes indicative of a man-in-the-middle attack in progress.'},
+    {y:'blank'},
+    {y:'comment',x:'// ARP TABLE BASELINE:'},
+    {y:'cmd',x:'arp -na | tee {CASE_PATH}/scans/arp_baseline.txt'},
+    {y:'desc',x:'↳ Captures the current MAC/IP bindings — compare against later snapshots'},
+    {y:'blank'},
+    {y:'comment',x:'// ARP SPOOF MONITOR (60 sec):'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "arp.duplicate-address-detected or arp.packet-storm-detected" 2>/dev/null | tee {CASE_PATH}/scans/arp_poison.txt'},
+    {y:'desc',x:'↳ Flags duplicate-address and packet-storm conditions typical of ARP poisoning'},
+    {y:'blank'},
+    {y:'comment',x:'// GRATUITOUS ARP WATCH:'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "arp.opcode == 2 and arp.src.proto_ipv4 == arp.dst.proto_ipv4" -T fields -e arp.src.hw_mac -e arp.src.proto_ipv4 2>/dev/null | tee {CASE_PATH}/scans/gratuitous_arp.txt'},
+    {y:'desc',x:'↳ Records gratuitous ARP replies — announcing a MAC change for a known IP'},
+    {y:'blank'},
+    {y:'warn',x:'△ Gratuitous ARP replies announcing a MAC change for a known IP — especially for the gateway — indicate active ARP poisoning.'},
+  ]},
+  hh_ssl:{t:'// SSL INTERCEPTION DETECTION',lines:[
+    {y:'desc',x:'Identifies devices performing TLS inspection or man-in-the-middle on encrypted traffic. Common in corporate surveillance hardware and rogue APs.'},
+    {y:'blank'},
+    {y:'comment',x:'// CERTIFICATE CHAIN SCAN:'},
+    {y:'cmd',x:'sudo nmap --script ssl-cert -p 443 {SUBNET} -oA {CASE_PATH}/scans/ssl_certs 2>&1 | tee {CASE_PATH}/scans/ssl_cert_scan.txt'},
+    {y:'desc',x:'↳ Grabs TLS certs across the subnet — inspect Issuer for unexpected inline CAs'},
+    {y:'blank'},
+    {y:'comment',x:'// TLS INSPECTION CHECK (gateway):'},
+    {y:'cmd',x:'echo | openssl s_client -connect {SUBNET%.*}.1:443 -verify_return_error 2>&1 | grep -E "issuer|subject|verify" | tee {CASE_PATH}/scans/gateway_tls.txt'},
+    {y:'desc',x:'↳ Checks the gateway cert chain — a verify failure or unknown CA signals interception'},
+    {y:'blank'},
+    {y:'warn',x:'△ A self-signed or unknown CA certificate on the gateway or any inline device is a strong indicator of TLS interception. Compare issuer against known legitimate CAs.'},
+  ]},
+  hh_dns:{t:'// DNS TUNNELING DETECTION',lines:[
+    {y:'desc',x:'Detects covert data exfiltration via DNS queries. High query volume, long subdomains, or TXT record abuse are key indicators.'},
+    {y:'blank'},
+    {y:'comment',x:'// DNS QUERY MONITOR (120 sec):'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:120 -Y "dns" -T fields -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -rn | head -50 | tee {CASE_PATH}/scans/dns_queries.txt'},
+    {y:'desc',x:'↳ Ranks DNS queries by volume — a single domain dominating is a tunneling indicator'},
+    {y:'blank'},
+    {y:'comment',x:'// LONG SUBDOMAIN DETECTION:'},
+    {y:'cmd',x:"sudo tshark -i {IFACE} -a duration:60 -Y \"dns\" -T fields -e dns.qry.name 2>/dev/null | awk 'length($0) > 50' | sort -u | tee {CASE_PATH}/scans/dns_long_subdomains.txt"},
+    {y:'desc',x:'↳ Isolates queries over 50 chars — encoded exfil payloads hide in long subdomains'},
+    {y:'blank'},
+    {y:'comment',x:'// DNS TXT RECORD MONITOR:'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "dns.qry.type == 16" -T fields -e dns.qry.name 2>/dev/null | tee {CASE_PATH}/scans/dns_txt_queries.txt'},
+    {y:'desc',x:'↳ Captures TXT record lookups — frequently abused for tunneling and C2'},
+    {y:'blank'},
+    {y:'warn',x:'△ DNS tunneling indicators: queries longer than 50 chars, high volume to a single domain, frequent TXT record lookups, or encoded-looking subdomains (base64/hex patterns). Common tools: iodine, dnscat2.'},
   ]},
   dns:{t:'// DNS LEAK CHECK',lines:[
     {y:'comment',x:'// Browser tools — run from inside target network'},
@@ -1186,7 +1334,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.3 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.4 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1209,7 +1357,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.3',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1298,7 +1446,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.3','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
