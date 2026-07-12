@@ -102,19 +102,15 @@ else
 fi
 
 # ============================================================
-#  6. ARP-SCAN OUI DATABASE — REFRESH + PERMANENT PERMISSION FIX
+#  6. ARP-SCAN OUI DATABASE — PERMANENT PERMISSION FIX
 # ============================================================
 echo ""
-echo -e "${CYAN}[6/11]${NC} Refreshing arp-scan OUI database + installing boot-time permission fix..."
-# Refresh the vendor database FIRST — a fresh download can land as root-only,
-# so the chmod that follows must run afterwards to leave it world-readable.
-sudo arp-scan --download-vendors 2>/dev/null
+echo -e "${CYAN}[6/11]${NC} Fixing arp-scan OUI database permissions + installing boot-time fix..."
 sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null
-echo -e "${GREEN}[✓]${NC} OUI database refreshed and permissions fixed for this session"
+echo -e "${GREEN}[✓]${NC} OUI database permissions fixed for this session"
 
 # Make the permission fix permanent — the database can be reset to root-only
-# by package updates or a future --download-vendors, so reapply 644 on every
-# boot via a systemd oneshot service.
+# by package updates, so reapply 644 on every boot via a systemd oneshot service.
 ARP_SVC="/etc/systemd/system/dsg-arpscan-perms.service"
 if command -v systemctl &>/dev/null; then
   sudo tee "$ARP_SVC" >/dev/null << 'ARPUNIT'
