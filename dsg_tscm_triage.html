@@ -209,6 +209,7 @@ html,body{background:#040810;min-height:100vh;}
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('netcam',this)"><span style="font-size:15px;">◉</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">NETWORK CAM</span></button>
         <button class="mb" onclick="showInfo('hiddencam',this)"><span style="font-size:15px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HIDDEN CAM</span></button>
+        <button class="mb" onclick="showInfo('netkvm',this)"><span style="font-size:15px;">⌨</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">NETWORK KVM</span></button>
       </div>
     </div>
     <div style="margin-bottom:13px;">
@@ -842,6 +843,31 @@ const ID={
     {y:'cmd',x:'mkdir -p {CASE_PATH}/screenshots && fswebcam -r 1920x1080 {CASE_PATH}/screenshots/camera_evidence_$(date +%H%M%S).jpg'},
     {y:'desc',x:'↳ Photograph physical evidence in place before disturbing'},
   ]},
+  netkvm:{t:'// NETWORK KVM',lines:[
+    {y:'desc',x:'Detects KVM-over-IP devices (keyboard/video/mouse switches with network access) which represent a significant covert access risk.'},
+    {y:'desc',x:'These devices allow full desktop control from remote locations and may not appear in standard network inventories.'},
+    {y:'blank'},
+    {y:'comment',x:'// KVM OUI SCAN — flag known KVM-over-IP device OUIs in arp-scan output:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:10:74|00:0e:c6|00:e0:d8|00:0d:5d|00:60:48|00:e0:86|00:30:bd|00:11:50|00:20:4a|00:80:a3|00:22:c9|00:e0:7d|00:10:16" | tee {CASE_PATH}/scans/kvm_hits.txt'},
+    {y:'desc',x:'↳ Flags known KVM vendor OUIs in live scan — saves full results and flagged hits'},
+    {y:'blank'},
+    {y:'comment',x:'// KVM PORT SCAN — probe KVM management ports:'},
+    {y:'cmd',x:'sudo nmap -sV -p 80,443,902,5900,5901,8080,8443,7900,2068,3000 {SUBNET} -oA {CASE_PATH}/scans/kvm_portscan'},
+    {y:'desc',x:'↳ Fingerprints KVM management/VNC ports across the subnet — saves results'},
+    {y:'blank'},
+    {y:'warn',x:'△ KVM devices may report under NIC manufacturer OUIs (Intel, Realtek) rather than the KVM vendor. A port scan hit on 5900 (VNC), 902 (VMware), or 2068 (Raritan) without a corresponding workstation is a strong indicator.'},
+    {y:'blank'},
+    {y:'banner',collapsed:true,h:'// TARGET OUI REFERENCE',lines:[
+      {y:'desc',x:'Aten International   00:10:74 / 00:0E:C6 / 00:E0:D8'},
+      {y:'desc',x:'Raritan/Dominion     00:0D:5D'},
+      {y:'desc',x:'Avocent/Vertiv       00:60:48 / 00:E0:86'},
+      {y:'desc',x:'Belkin OmniView      00:30:BD / 00:11:50'},
+      {y:'desc',x:'Lantronix            00:20:4A / 00:80:A3'},
+      {y:'desc',x:'Adder Technology     00:22:C9'},
+      {y:'desc',x:'Black Box            00:E0:7D'},
+      {y:'desc',x:'Rose Electronics     00:10:16'},
+    ]},
+  ]},
   hackhw:{t:'// HACK HARDWARE DETECTION — HACKER HUNTING',lines:[
     {y:'warn',x:'// SCOPE NOTE: Run based on engagement scope and time constraints'},
     {y:'warn',x:'// Finding a device OUI does not prove malicious intent — it documents presence for further investigation'},
@@ -1093,7 +1119,7 @@ function renderInfo(k){
   d.lines.forEach(line=>{
     if(line.y==='blank'){body.appendChild(document.createElement('br'));return;}
     if(line.y==='banner'){
-      const det=document.createElement('details');det.className='info-banner';det.open=true;
+      const det=document.createElement('details');det.className='info-banner';det.open=!line.collapsed;
       const sum=document.createElement('summary');sum.textContent=line.h;det.appendChild(sum);
       const inner=document.createElement('div');inner.className='ib-inner';
       (line.lines||[]).forEach(sl=>{
