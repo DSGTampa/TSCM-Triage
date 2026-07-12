@@ -102,12 +102,13 @@ else
 fi
 
 # ============================================================
-#  6. ARP-SCAN OUI DATABASE PERMISSIONS
+#  6. ARP-SCAN NOTE
 # ============================================================
+# No OUI database permission fix is applied. arp-scan requires sudo for raw
+# socket access, and vendor names resolve automatically when run under sudo.
 echo ""
-echo -e "${CYAN}[6/11]${NC} Fixing arp-scan OUI database permissions..."
-sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null
-echo -e "${GREEN}[✓]${NC} OUI database permissions fixed"
+echo -e "${CYAN}[6/11]${NC} arp-scan check..."
+echo -e "${GREEN}[✓]${NC} arp-scan requires sudo for raw socket access — vendor names resolve automatically with sudo"
 
 # ============================================================
 #  7. CREATE REQUIRED DIRECTORIES

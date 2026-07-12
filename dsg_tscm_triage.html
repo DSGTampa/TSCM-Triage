@@ -226,15 +226,6 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div style="margin-bottom:13px;">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊗</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">OSINT</span><div class="sl"></div></div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;">
-        <button class="mb" onclick="showInfo('email',this)"><span style="font-size:15px;">◎</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">EMAIL</span></button>
-        <button class="mb" onclick="showInfo('phone',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PHONE</span></button>
-        <button class="mb" onclick="showInfo('username',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">USERNAME</span></button>
-        <button class="mb" onclick="showInfo('breach',this)"><span style="font-size:15px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BREACH</span></button>
-      </div>
-    </div>
-    <div style="margin-bottom:13px;">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊠</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">EVIDENCE</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('pcap',this)"><span style="font-size:15px;">⊟</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PCAP</span></button>
@@ -255,6 +246,15 @@ html,body{background:#040810;min-height:100vh;}
         <button class="mb" onclick="showInfo('ent_bw',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">◈</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BANDWIDTH</span></button>
         <button class="mb" onclick="showInfo('ent_timeline',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊠</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TIMELINE</span></button>
         <button class="mb" onclick="showInfo('ent_summary',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⊡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">CASE SUMRY</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊗</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">OSINT</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('email',this)"><span style="font-size:15px;">◎</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">EMAIL</span></button>
+        <button class="mb" onclick="showInfo('phone',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PHONE</span></button>
+        <button class="mb" onclick="showInfo('username',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">USERNAME</span></button>
+        <button class="mb" onclick="showInfo('breach',this)"><span style="font-size:15px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BREACH</span></button>
       </div>
     </div>
     <div style="margin-bottom:13px;">
@@ -395,7 +395,7 @@ const ID={
     {y:'cmd',x:'ip addr show {IFACE} | grep "inet "'},
     {y:'desc',x:'↳ Run this to find your actual subnet, then update the SUBNET field above'},
     {y:'blank'},
-    {y:'desc',x:'↳ sudo required for raw socket capture — vendor names resolve automatically'},
+    {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep — creates folder then saves results'},
@@ -424,7 +424,7 @@ const ID={
     {y:'desc',x:'34567 Dahua DVR           37777 Dahua proprietary'},
   ]},
   oui:{t:'// OUI MAC FINGERPRINTING',lines:[
-    {y:'desc',x:'↳ sudo required for raw socket capture — vendor names resolve automatically'},
+    {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep with vendor resolution — creates folder and saves results'},
@@ -495,9 +495,9 @@ const ID={
   ]},
   wifi:{t:'// WIFI ANALYSIS — wlan1 / wlan1mon',lines:[
     {y:'banner',h:'// PASSIVE RF ENUMERATION — WHAT THIS STEP UNCOVERS',lines:[
-      {y:'desc',x:'What it detects: hidden SSIDs, unassociated clients, OUI cross-reference, rogue APs, devices not visible on wired scan'},
-      {y:'desc',x:'Listen-only: no packets transmitted, completely passive, zero network footprint'},
-      {y:'warn',x:'△ TIMING: 2-3 minutes minimum to catch periodic beacons. 5-10 minutes recommended for a full TSCM sweep. Devices transmitting infrequently may not appear in shorter captures.'},
+      {y:'desc',x:'Detects: hidden SSIDs, unassociated clients, OUI cross-reference, rogue APs, devices not visible on wired scan'},
+      {y:'desc',x:'Listen-only: no packets transmitted — completely passive, zero network footprint'},
+      {y:'warn',x:'△ TIMING: 2-3 minutes minimum to catch periodic beacons. 5-10 minutes recommended for full TSCM sweep'},
       {y:'warn',x:'△ Do not stop airodump early — covert devices often transmit in short bursts with long gaps between'},
     ]},
     {y:'warn',x:'// All wifi commands use WLESS selector (default: wlan1)'},
