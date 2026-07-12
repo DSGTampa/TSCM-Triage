@@ -212,6 +212,12 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⌖</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">COUNTER-SURVEILLANCE</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('hackhw',this)" style="border-color:#f0a83230;"><span style="font-size:14px;">⌘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">HACK HW</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊛</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">INTELLIGENCE</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('dns',this)"><span style="font-size:15px;">⊡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DNS LEAK</span></button>
@@ -300,6 +306,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
     <div style="min-width:200px;">
       <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.3 — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">COUNTER-SURVEILLANCE section — HACK HW pentest/covert hardware detection panel</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">WiFi panel: passive RF enumeration explainer banner with timing guidance</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Fixed Kismet double-slash log path — now writes to {CASE_PATH}/wireless/kismet/</span></div>
     </div>
@@ -837,6 +844,46 @@ const ID={
     {y:'comment',x:'// DOCUMENT FINDINGS'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/screenshots && fswebcam -r 1920x1080 {CASE_PATH}/screenshots/camera_evidence_$(date +%H%M%S).jpg'},
     {y:'desc',x:'↳ Photograph physical evidence in place before disturbing'},
+  ]},
+  hackhw:{t:'// HACK HARDWARE DETECTION — COUNTER-SURVEILLANCE',lines:[
+    {y:'warn',x:'// SCOPE NOTE: Run based on engagement scope and time constraints'},
+    {y:'warn',x:'// Finding a device OUI does not prove malicious intent — it documents presence for further investigation'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 1 — OUI cross-reference for known pentest and covert hardware:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
+    {y:'desc',x:'↳ Flags known pentest and covert device OUIs — saves all results and hits separately'},
+    {y:'blank'},
+    {y:'desc',x:'Raspberry Pi    B8:27:EB / DC:A6:32 / E4:5F:01 / D8:3A:DD / 2C:CF:67'},
+    {y:'desc',x:'Espressif ESP   DC:4F:22 / E8:DB:84 / CC:50:E3 / 24:0A:C4 / A4:CF:12 / 30:AE:A4'},
+    {y:'desc',x:'Alfa Network    00:C0:CA  (WiFi Pineapple adapter, TSCM/pentest WiFi cards)'},
+    {y:'desc',x:'GL.iNet         94:83:C4 / B4:FB:E4  (rogue AP hardware, travel routers)'},
+    {y:'desc',x:'Hak5 Pineapple  00:0C:E7  (Mark VII MediaTek chipset)'},
+    {y:'desc',x:'Arduino LLC     00:21:86  (Arduino with WiFi shield)'},
+    {y:'desc',x:'FlipperZero BLE 80:E1:26  (appears in BLE scans not ARP)'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 2 — Scan for WiFi Pineapple admin interface (port 1471):'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -p 1471,22,80,443 --open {SUBNET} -oA {CASE_PATH}/scans/pineapple_portscan'},
+    {y:'desc',x:'↳ Port 1471 open = strong Pineapple indicator — saves results'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 3 — Check wireless capture for Pineapple SSIDs:'},
+    {y:'cmd',x:'grep -iE "pineap|pineapple|mkVII|mk7|nano|tetra|turtle|squirrel|bashbunny" {CASE_PATH}/wireless/pre_deauth-01.csv 2>/dev/null | tee {CASE_PATH}/scans/pineapple_ssid_hits.txt'},
+    {y:'desc',x:'↳ Searches airodump capture for known Hak5 device SSIDs'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 4 — Check for Pineapple default gateway:'},
+    {y:'cmd',x:'nmap -sn 172.16.42.0/24 -oA {CASE_PATH}/scans/pineapple_subnet'},
+    {y:'desc',x:'↳ WiFi Pineapple defaults to 172.16.42.1 — presence on this subnet is a strong indicator'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 5 — BLE scan for FlipperZero and other BLE pentest tools:'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo hciconfig hci0 up && sudo hcitool lescan 2>/dev/null | tee {CASE_PATH}/wireless/ble_all.txt &'},
+    {y:'desc',x:'↳ Runs BLE scan in background for 30 seconds — saves all devices'},
+    {y:'cmd',x:'sleep 30 && kill %1 && grep -iE "80:e1:26|flipper" {CASE_PATH}/wireless/ble_all.txt | tee {CASE_PATH}/wireless/flipper_hits.txt'},
+    {y:'desc',x:'↳ Stops scan and filters for FlipperZero OUI'},
+    {y:'blank'},
+    {y:'comment',x:'// STEP 6 — Scan for rogue APs and evil twin attacks:'},
+    {y:'cmd',x:"grep -v \"$(cat {CASE_PATH}/wireless/pre_deauth-01.csv | awk -F',' 'NR>2{print $1}' | sort -u | tr '\\n' '|' | sed 's/|$//')\" {CASE_PATH}/wireless/post_deauth-01.csv 2>/dev/null | tee {CASE_PATH}/scans/rogue_ap_candidates.txt"},
+    {y:'desc',x:'↳ Cross-references pre and post deauth captures to find APs not present before scan'},
+    {y:'blank'},
+    {y:'warn',x:'// DOCUMENT ALL FINDINGS: OUI match alone is circumstantial — combine with port scan, SSID, and behavioral evidence for defensible documentation'},
   ]},
   dns:{t:'// DNS LEAK CHECK',lines:[
     {y:'comment',x:'// Browser tools — run from inside target network'},
