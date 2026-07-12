@@ -102,13 +102,59 @@ else
 fi
 
 # ============================================================
-#  6. ARP-SCAN OUI DATABASE PERMISSIONS
+#  6. ARP-SCAN OUI DATABASE — REFRESH + PERMANENT PERMISSION FIX
 # ============================================================
 echo ""
-echo -e "${CYAN}[6/11]${NC} Fixing arp-scan OUI database permissions..."
-sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null
+echo -e "${CYAN}[6/11]${NC} Refreshing arp-scan OUI database + installing boot-time permission fix..."
+# Refresh the vendor database FIRST — a fresh download can land as root-only,
+# so the chmod that follows must run afterwards to leave it world-readable.
 sudo arp-scan --download-vendors 2>/dev/null
-echo -e "${GREEN}[✓]${NC} arp-scan OUI database refreshed"
+sudo chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null
+echo -e "${GREEN}[✓]${NC} OUI database refreshed and permissions fixed for this session"
+
+# Make the permission fix permanent — the database can be reset to root-only
+# by package updates or a future --download-vendors, so reapply 644 on every
+# boot via a systemd oneshot service.
+ARP_SVC="/etc/systemd/system/dsg-arpscan-perms.service"
+if command -v systemctl &>/dev/null; then
+  sudo tee "$ARP_SVC" >/dev/null << 'ARPUNIT'
+[Unit]
+Description=DSG TSCM — arp-scan OUI database permission fix
+Documentation=https://www.dataspecialistgroup.com
+After=local-fs.target
+ConditionPathExistsGlob=/usr/share/arp-scan/*.txt
+
+[Service]
+Type=oneshot
+ExecStart=/bin/sh -c 'chmod 644 /usr/share/arp-scan/*.txt'
+
+[Install]
+WantedBy=multi-user.target
+ARPUNIT
+  sudo systemctl daemon-reload
+  sudo systemctl enable --now dsg-arpscan-perms.service 2>/dev/null
+  echo -e "${GREEN}[✓]${NC} Installed boot-time fix: dsg-arpscan-perms.service (enabled)"
+else
+  # Fallback for systems without systemd — append to /etc/rc.local
+  RCL="/etc/rc.local"
+  ARP_CMD="chmod 644 /usr/share/arp-scan/*.txt 2>/dev/null"
+  if [[ ! -f "$RCL" ]]; then
+    printf '#!/bin/sh -e\n%s\nexit 0\n' "$ARP_CMD" | sudo tee "$RCL" >/dev/null
+    sudo chmod +x "$RCL"
+    echo -e "${GREEN}[✓]${NC} Created /etc/rc.local with boot-time permission fix"
+  elif ! sudo grep -qF "/usr/share/arp-scan/" "$RCL"; then
+    # Insert the fix just before the final 'exit 0' if present, else append
+    if sudo grep -qE '^\s*exit 0\s*$' "$RCL"; then
+      sudo sed -i "0,/^\s*exit 0\s*$/s||$ARP_CMD\nexit 0|" "$RCL"
+    else
+      echo "$ARP_CMD" | sudo tee -a "$RCL" >/dev/null
+    fi
+    sudo chmod +x "$RCL"
+    echo -e "${GREEN}[✓]${NC} Added boot-time permission fix to /etc/rc.local"
+  else
+    echo -e "${GREEN}[✓]${NC} /etc/rc.local already contains the arp-scan fix"
+  fi
+fi
 
 # ============================================================
 #  7. CREATE REQUIRED DIRECTORIES
@@ -214,6 +260,7 @@ fi
 echo ""
 echo -e "  ${WHITE}Installed to:${NC}            $INSTALL_DIR"
 echo -e "  ${WHITE}Case folder root:${NC}        ~/DSG-TSCM/cases/"
+echo -e "  ${WHITE}OUI perm boot fix:${NC}       dsg-arpscan-perms.service (reapplies 644 each boot)"
 echo ""
 echo -e "  ${WHITE}Launch (no server):${NC}      bash ~/dsg-tscm/launch.sh"
 echo -e "  ${WHITE}Launch (with server):${NC}    bash ~/dsg-tscm/launch_server.sh"
