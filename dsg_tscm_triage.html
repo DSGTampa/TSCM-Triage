@@ -249,18 +249,18 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div style="margin-bottom:13px;">
+      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊡</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">SECURITY OPS</span><div class="sl"></div></div>
+      <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" id="tscm-btn" onclick="showConsole()"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TSCM INTAKE</span></button>
+      </div>
+    </div>
+    <div style="margin-bottom:13px;">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊗</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">OSINT</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('email',this)"><span style="font-size:15px;">◎</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">EMAIL</span></button>
         <button class="mb" onclick="showInfo('phone',this)"><span style="font-size:15px;">⊞</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">PHONE</span></button>
         <button class="mb" onclick="showInfo('username',this)"><span style="font-size:15px;">⊙</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">USERNAME</span></button>
         <button class="mb" onclick="showInfo('breach',this)"><span style="font-size:15px;">⊘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BREACH</span></button>
-      </div>
-    </div>
-    <div style="margin-bottom:13px;">
-      <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⊡</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">SECURITY OPS</span><div class="sl"></div></div>
-      <div style="display:flex;flex-wrap:wrap;gap:5px;">
-        <button class="mb" id="tscm-btn" onclick="showConsole()"><span style="font-size:15px;">⊕</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">TSCM INTAKE</span></button>
       </div>
     </div>
   </div>
@@ -397,7 +397,7 @@ const ID={
     {y:'blank'},
     {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep — creates folder then saves results'},
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sn -PR {SUBNET} -oA {CASE_PATH}/scans/ping_sweep'},
@@ -426,7 +426,7 @@ const ID={
   oui:{t:'// OUI MAC FINGERPRINTING',lines:[
     {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep with vendor resolution — creates folder and saves results'},
     {y:'blank'},
     {y:'warn',x:'★★ HIGH PRIORITY — DIY covert devices:'},
@@ -438,7 +438,7 @@ const ID={
     {y:'desc',x:'Dahua      90:02:A9 / E0:50:8B / 3C:EF:8C'},
     {y:'desc',x:'Wyze 2C:AA:8E  Ring B0:09:DA  Arlo 6C:56:97  Nest 18:B4:30'},
     {y:'blank'},
-    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/ {print $1, $2, $3}' | tee {CASE_PATH}/scans/oui_results.txt"},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/ {print $1, $2, $3}' | tee {CASE_PATH}/scans/oui_results.txt"},
     {y:'desc',x:'↳ Extracts IP, MAC, vendor — saves to case folder'},
   ]},
   onvif:{t:'// ONVIF / WS-DISCOVERY — CAMERA PROBE',lines:[
@@ -494,11 +494,11 @@ const ID={
     {y:'desc',x:'↳ Upload baseline.pcap for Snort + Suricata IDS analysis'},
   ]},
   wifi:{t:'// WIFI ANALYSIS — wlan1 / wlan1mon',lines:[
-    {y:'banner',h:'// PASSIVE RF ENUMERATION — WHAT THIS STEP UNCOVERS',lines:[
-      {y:'desc',x:'Detects: hidden SSIDs, unassociated clients, OUI cross-reference, rogue APs, devices not visible on wired scan'},
-      {y:'desc',x:'Listen-only: no packets transmitted — completely passive, zero network footprint'},
-      {y:'warn',x:'△ TIMING: 2-3 minutes minimum to catch periodic beacons. 5-10 minutes recommended for full TSCM sweep'},
-      {y:'warn',x:'△ Do not stop airodump early — covert devices often transmit in short bursts with long gaps between'},
+    {y:'banner',h:'// PASSIVE RF ENUMERATION',lines:[
+      {y:'desc',x:'This step captures raw 802.11 frames in monitor mode without transmitting. The adapter listens passively — no probe requests are sent.'},
+      {y:'warn',x:'△ Minimum capture time: 2–3 minutes. Devices beacon on irregular cycles.'},
+      {y:'warn',x:'△ Recommended: 5–10 minutes for reliable hidden SSID and low-interval device detection.'},
+      {y:'warn',x:'△ Do not interact with the network during capture — client traffic reveals additional SSIDs.'},
     ]},
     {y:'warn',x:'// All wifi commands use WLESS selector (default: wlan1)'},
     {y:'blank'},
@@ -635,10 +635,10 @@ const ID={
     {y:'warn',x:'// Devices powered off during initial sweep appear on rescan — run twice with time gap'},
     {y:'blank'},
     {y:'comment',x:'// STEP 1 — baseline scan:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | sort > {CASE_PATH}/scans/baseline_devices.txt && echo "Baseline saved: $(wc -l < {CASE_PATH}/scans/baseline_devices.txt) hosts"'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/baseline_devices.txt && echo "Baseline saved: $(wc -l < {CASE_PATH}/scans/baseline_devices.txt) hosts"'},
     {y:'blank'},
     {y:'comment',x:'// STEP 2 — wait 15-60 minutes then rescan:'},
-    {y:'cmd',x:'sudo arp-scan --localnet --interface={IFACE} --ignoredups | sort > {CASE_PATH}/scans/rescan_devices.txt && echo "Rescan saved: $(wc -l < {CASE_PATH}/scans/rescan_devices.txt) hosts"'},
+    {y:'cmd',x:'sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/rescan_devices.txt && echo "Rescan saved: $(wc -l < {CASE_PATH}/scans/rescan_devices.txt) hosts"'},
     {y:'blank'},
     {y:'comment',x:'// STEP 3 — diff to find new devices:'},
     {y:'cmd',x:"diff {CASE_PATH}/scans/baseline_devices.txt {CASE_PATH}/scans/rescan_devices.txt | grep '^>' | tee {CASE_PATH}/scans/new_devices.txt"},
@@ -755,7 +755,7 @@ const ID={
   ]},
   netcam:{t:'// NETWORK CAMERA IDENTIFICATION',lines:[
     {y:'comment',x:'// STEP 1 — flag known camera OUIs in arp-scan output:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_scan.txt | grep -iE "ring|arlo|wyze|blink|eufy|amcrest|reolink|foscam|nest|hikvision|dahua|axis|b0:09:da|6c:56:97|2c:aa:8e|f4:f2:28|d4:52:bf|9c:8e:cd|ec:71:db|18:b4:30|4c:11:bf|90:02:a9|00:40:8c" | tee {CASE_PATH}/scans/camera_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt | grep -iE "ring|arlo|wyze|blink|eufy|amcrest|reolink|foscam|nest|hikvision|dahua|axis|b0:09:da|6c:56:97|2c:aa:8e|f4:f2:28|d4:52:bf|9c:8e:cd|ec:71:db|18:b4:30|4c:11:bf|90:02:a9|00:40:8c" | tee {CASE_PATH}/scans/camera_hits.txt'},
     {y:'desc',x:'↳ Flags known camera vendors in live scan — saves full results and flagged hits'},
     {y:'blank'},
     {y:'warn',x:'Known camera OUI prefixes:'},
@@ -847,7 +847,7 @@ const ID={
     {y:'warn',x:'// Finding a device OUI does not prove malicious intent — it documents presence for further investigation'},
     {y:'blank'},
     {y:'comment',x:'// STEP 1 — OUI cross-reference for known pentest and covert hardware:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
     {y:'desc',x:'↳ Flags known pentest and covert device OUIs — saves all results and hits separately'},
     {y:'blank'},
     {y:'desc',x:'Raspberry Pi    B8:27:EB / DC:A6:32 / E4:5F:01 / D8:3A:DD / 2C:CF:67'},

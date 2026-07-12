@@ -102,12 +102,16 @@ else
 fi
 
 # ============================================================
-#  6. ARP-SCAN NOTE
+#  6. ARP-SCAN OUI/MAC VENDOR DATABASE
 # ============================================================
 # No OUI database permission fix is applied. arp-scan requires sudo for raw
 # socket access, and vendor names resolve automatically when run under sudo.
+# Some arp-scan builds ship only ieee-oui.txt; the panels pass an explicit
+# --macfile=/usr/share/arp-scan/mac-vendor.txt, so point it at the OUI file
+# when a separate mac-vendor.txt is not present.
 echo ""
-echo -e "${CYAN}[6/11]${NC} arp-scan check..."
+echo -e "${CYAN}[6/11]${NC} Configuring arp-scan vendor database..."
+sudo ln -sf /usr/share/arp-scan/ieee-oui.txt /usr/share/arp-scan/mac-vendor.txt
 echo -e "${GREEN}[✓]${NC} arp-scan requires sudo for raw socket access — vendor names resolve automatically with sudo"
 
 # ============================================================
