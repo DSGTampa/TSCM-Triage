@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.2</title>
+<title>DSG TSCM Triage v1.8.3</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -47,6 +47,14 @@ html,body{background:#040810;min-height:100vh;}
 .vs-bar:hover .vtog{color:#00c8d7;}
 .vs-content{overflow:hidden;max-height:0;transition:max-height .3s ease;background:#060b12;}
 .vs-content.open{max-height:400px;}
+.info-banner{margin:2px 0 10px 0;border:1px solid #14351f;border-radius:3px;background:#07130c;}
+.info-banner>summary{cursor:pointer;padding:6px 9px;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-weight:600;letter-spacing:.05em;list-style:none;user-select:none;outline:none;}
+.info-banner>summary::-webkit-details-marker{display:none;}
+.info-banner>summary::before{content:'▸ ';color:#3ddc84;}
+.info-banner[open]>summary::before{content:'▾ ';}
+.info-banner>summary:hover{color:#5ff0a0;}
+.info-banner .ib-inner{padding:2px 12px 9px 20px;}
+.info-banner .ib-inner>div{line-height:1.55;margin:4px 0;word-break:break-word;}
 .si-item{background:#0a1520;border:1px solid #162536;border-radius:4px;padding:6px 8px;margin-bottom:4px;cursor:pointer;transition:border-color .12s;}
 .si-item:hover{border-color:#00c8d755;}
 .scan-btn-sm{background:#0a1520;border:1px solid #162536;border-radius:3px;color:#2e5070;cursor:pointer;padding:2px 8px;font-family:'Share Tech Mono',monospace;font-size:10px;outline:none;transition:all .12s;}
@@ -82,7 +90,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
   <div style="display:flex;justify-content:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.2</span>
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.3</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
   </div>
 </div>
@@ -266,7 +274,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.2 — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.3 — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -285,11 +293,16 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.2 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.3 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.3 — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">WiFi panel: passive RF enumeration explainer banner with timing guidance</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Fixed Kismet double-slash log path — now writes to {CASE_PATH}/wireless/kismet/</span></div>
+    </div>
     <div style="min-width:200px;">
       <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.2 — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Interface simplified to single dropdown: eth0 / wlan0 / wlan1</span></div>
@@ -477,6 +490,12 @@ const ID={
     {y:'desc',x:'↳ Upload baseline.pcap for Snort + Suricata IDS analysis'},
   ]},
   wifi:{t:'// WIFI ANALYSIS — wlan1 / wlan1mon',lines:[
+    {y:'banner',h:'// PASSIVE RF ENUMERATION — WHAT THIS STEP UNCOVERS',lines:[
+      {y:'desc',x:'What it detects: hidden SSIDs, unassociated clients, OUI cross-reference, rogue APs, devices not visible on wired scan'},
+      {y:'desc',x:'Listen-only: no packets transmitted, completely passive, zero network footprint'},
+      {y:'warn',x:'△ TIMING: 2-3 minutes minimum to catch periodic beacons. 5-10 minutes recommended for a full TSCM sweep. Devices transmitting infrequently may not appear in shorter captures.'},
+      {y:'warn',x:'△ Do not stop airodump early — covert devices often transmit in short bursts with long gaps between'},
+    ]},
     {y:'warn',x:'// All wifi commands use WLESS selector (default: wlan1)'},
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless'},
@@ -491,7 +510,7 @@ const ID={
     {y:'cmd',x:'sudo airodump-ng --write {CASE_PATH}/wireless/wifi_capture --output-format csv,pcap {WIFACE}mon'},
     {y:'desc',x:'↳ Saves CSV + pcap to case folder (Ctrl+C to stop)'},
     {y:'blank'},
-    {y:'cmd',x:'sudo kismet -c {WIFACE}mon --log-prefix {CASE_PATH}/wireless/kismet'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless/kismet && sudo kismet -c {WIFACE}mon --log-prefix {CASE_PATH}/wireless/kismet/Kismet'},
     {y:'desc',x:'↳ Full 802.11 capture to case folder — http://localhost:2501'},
     {y:'blank'},
     {y:'cmd',x:'sudo airmon-ng stop {WIFACE}mon && sudo systemctl restart NetworkManager'},
@@ -1029,6 +1048,16 @@ function renderInfo(k){
   const body=document.getElementById('ip-body');body.innerHTML='';
   d.lines.forEach(line=>{
     if(line.y==='blank'){body.appendChild(document.createElement('br'));return;}
+    if(line.y==='banner'){
+      const det=document.createElement('details');det.className='info-banner';det.open=true;
+      const sum=document.createElement('summary');sum.textContent=line.h;det.appendChild(sum);
+      const inner=document.createElement('div');inner.className='ib-inner';
+      (line.lines||[]).forEach(sl=>{
+        if(sl.y==='blank'){inner.appendChild(document.createElement('br'));return;}
+        const p=document.createElement('div');p.style.color=CC[sl.y]||'#b8d4e8';p.textContent=applyTokens(sl.x);inner.appendChild(p);
+      });
+      det.appendChild(inner);body.appendChild(det);return;
+    }
     const row=document.createElement('div');row.style.cssText='display:flex;align-items:flex-start;gap:6px;margin:1px 0;min-height:20px;';
     const span=document.createElement('span');span.style.cssText='color:'+(CC[line.y]||'#b8d4e8')+';flex:1;word-break:break-all;';
     const resolved=applyTokens(line.x);span.textContent=resolved;row.appendChild(span);
@@ -1087,7 +1116,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.2 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.3 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1110,7 +1139,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.2',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.3',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1199,7 +1228,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.2','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.3','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
