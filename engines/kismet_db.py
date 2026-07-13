@@ -40,6 +40,9 @@ _AP_TYPES = ("Wi-Fi AP", "Wi-Fi WDS AP")
 _CATEGORY_SQL = {
     "all":         ("", []),
     "wifi":        ("phyname = ?", [PHY_WIFI]),
+    # AP selection is by phyname + device type ONLY — deliberately no channel,
+    # band, or signal predicate, so 2.4GHz, 5GHz and 6GHz APs are all returned
+    # and weak (e.g. distant 5GHz) APs are never dropped by a signal floor.
     "wifi_ap":     ("phyname = ? AND type IN (?, ?)", [PHY_WIFI, *_AP_TYPES]),
     "wifi_client": ("phyname = ? AND type NOT IN (?, ?)", [PHY_WIFI, *_AP_TYPES]),
 }

@@ -288,7 +288,7 @@ def api_validation_report():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.2 — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.4c — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     app.run(host='127.0.0.1', port=5555, debug=False)
