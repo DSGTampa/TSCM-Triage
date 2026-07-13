@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="$HOME/dsg-tscm"
 
 # Files that make up the project
-PROJECT_FILES=(dsg_tscm_triage.html server.py launch.sh launch_server.sh analyze_capture.sh)
+PROJECT_FILES=(dsg_tscm_triage.html validation.html server.py launch.sh launch_server.sh analyze_capture.sh start_kismet.sh)
 
 # Sanity check — the HTML must live alongside this installer
 if [[ ! -f "$SCRIPT_DIR/dsg_tscm_triage.html" ]]; then
@@ -152,6 +152,17 @@ for F in "${PROJECT_FILES[@]}"; do
     echo -e "${YELLOW}[!]${NC} $F not found in source — skipped"
   fi
 done
+
+# ── Network Validation engines package ───────────────────────
+# server.py does `from engines import ...`; without this folder a fresh
+# install fails with ModuleNotFoundError: No module named 'engines'.
+if [[ -d "$SCRIPT_DIR/engines" ]]; then
+  mkdir -p "$INSTALL_DIR/engines"
+  cp "$SCRIPT_DIR"/engines/*.py "$INSTALL_DIR/engines/" 2>/dev/null || true
+  echo -e "${GREEN}[✓]${NC} engines/"
+else
+  echo -e "${YELLOW}[!]${NC} engines/ not found in source — Network Validation will not load"
+fi
 
 # ── Launcher (HTML only, no server) ──────────────────────────
 cat > "$INSTALL_DIR/launch.sh" << 'LAUNCHER'
