@@ -118,6 +118,34 @@ def run_command():
     except Exception as e:
         return jsonify({'output': '', 'returncode': -1, 'error': str(e)})
 
+@app.route('/api/update', methods=['POST'])
+def update():
+    # Localhost-only, matching /api/run — this shells out and restarts the server.
+    if request.remote_addr not in ('127.0.0.1', '::1'):
+        return jsonify({'success': False, 'stdout': '',
+                        'stderr': 'Forbidden: requests accepted from localhost only'}), 403
+    # update.sh lives in the git checkout (~/dsg-tscm/project) so its
+    # `git pull --ff-only` has a work tree to pull into; it then deploys the
+    # refreshed files to the runtime dir (~/dsg-tscm) and restarts Flask.
+    project_dir = os.path.expanduser('~/dsg-tscm/project')
+    try:
+        result = subprocess.run(
+            ['bash', os.path.join(project_dir, 'update.sh')],
+            capture_output=True,
+            text=True,
+            timeout=120,
+            cwd=project_dir
+        )
+        return jsonify({
+            'success': result.returncode == 0,
+            'stdout': result.stdout,
+            'stderr': result.stderr
+        })
+    except subprocess.TimeoutExpired:
+        return jsonify({'success': False, 'stdout': '', 'stderr': 'Update timed out after 120 seconds'}), 500
+    except Exception as e:
+        return jsonify({'success': False, 'stdout': '', 'stderr': str(e)}), 500
+
 @app.route('/api/cases-path')
 def cases_path():
     return jsonify({'cases_path': CASES_PATH, 'is_default': CASES_IS_DEFAULT})

@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.4</title>
+<title>DSG TSCM Triage v1.8.4a</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -63,6 +63,12 @@ html,body{background:#040810;min-height:100vh;}
 .runb:disabled{cursor:wait;opacity:.85;}
 .run-spin{display:inline-block;animation:spin .7s linear infinite;}
 @keyframes spin{to{transform:rotate(360deg);}}
+#update-btn:disabled{cursor:wait;opacity:.9;}
+#update-btn.updating{color:#ffb020;border-color:#ffb020;}
+#update-btn.updating #update-dot{background:#ffb020;animation:db .8s ease-in-out infinite;}
+#update-output .green{color:#00ff41;}
+#update-output .amber{color:#ffb020;}
+#update-output .red{color:#ff5555;}
 .run-out{margin:3px 0 9px 0;border:1px solid #14324a;border-radius:5px;background:#060b12;overflow:hidden;}
 .run-out-head{display:flex;align-items:center;justify-content:space-between;gap:8px;padding:5px 10px;background:#08131e;border-bottom:1px solid #12283c;}
 .run-out-cmd{font-family:'Share Tech Mono',monospace;font-size:11px;color:#00c8d7;word-break:break-all;flex:1;}
@@ -89,9 +95,10 @@ html,body{background:#040810;min-height:100vh;}
   </div>
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
-  <div style="display:flex;justify-content:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4</span>
+  <div style="display:flex;justify-content:center;align-items:center;gap:7px;">
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4a</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
+    <button id="update-btn" onclick="runUpdate()" style="display:inline-flex;align-items:center;gap:6px;background:#0a0a0a;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;cursor:pointer;letter-spacing:.06em;"><span id="update-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00ff41;"></span>UPDATE</button>
   </div>
 </div>
 
@@ -288,7 +295,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4 — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4a — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -307,13 +314,13 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4 &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4a &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
     <div style="min-width:200px;">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4 — July 2026</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4a — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">CAMERAS section renamed IOT DISCOVERY — added VOICE ASST + SMART TV panels</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACK HW: Hak5 OUI 00:13:37 + Cloud C2 DNS check + Hak5 port scan</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACKER HUNTING: ROGUE DHCP, ARP POISON, SSL INTCPT, DNS TUNNEL panels</span></div>
@@ -1334,7 +1341,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.4 — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.4a — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1357,7 +1364,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4a',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1446,7 +1453,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4a','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
@@ -1488,6 +1495,64 @@ async function runScan(){
 updateCI();
 loadSessions();
 loadConfig();
+
+async function runUpdate() {
+    const btn = document.getElementById('update-btn');
+    const modal = document.getElementById('update-modal');
+    const output = document.getElementById('update-output');
+
+    btn.textContent = 'UPDATING...';
+    btn.disabled = true;
+    btn.classList.add('updating');
+    modal.style.display = 'flex';
+    output.innerHTML = '<span class="green">// Running git pull and update.sh...</span>';
+
+    try {
+        const res = await fetch('/api/update', { method: 'POST' });
+        const data = await res.json();
+
+        if (data.success) {
+            output.innerHTML = '<span class="green">// UPDATE COMPLETE</span>\n' +
+                (data.stdout || 'Already up to date.');
+            let count = 3;
+            const countdown = setInterval(() => {
+                output.innerHTML += '\n<span class="amber">Reloading in ' + count + '...</span>';
+                count--;
+                if (count < 0) {
+                    clearInterval(countdown);
+                    location.reload();
+                }
+            }, 1000);
+        } else {
+            output.innerHTML = '<span class="red">// △ UPDATE FAILED</span>\n' +
+                (data.stderr || 'Unknown error');
+            btn.textContent = 'UPDATE';
+            btn.disabled = false;
+            btn.classList.remove('updating');
+        }
+    } catch (err) {
+        output.innerHTML = '<span class="red">// △ CONNECTION ERROR</span>\n' + err.message;
+        btn.textContent = 'UPDATE';
+        btn.disabled = false;
+        btn.classList.remove('updating');
+    }
+}
 </script>
+
+<!-- SYSTEM UPDATE MODAL -->
+<div id="update-modal" style="display:none; position:fixed; inset:0;
+background:rgba(0,0,0,0.85); z-index:9999; align-items:center;
+justify-content:center;">
+  <div style="background:#0a0a0a; border:1px solid #00ff41; padding:24px;
+  max-width:600px; width:90%; font-family:monospace;">
+    <div style="color:#00ff41; margin-bottom:12px;">// DSG TSCM TRIAGE — SYSTEM UPDATE</div>
+    <pre id="update-output" style="color:#00ff41; font-size:12px;
+    max-height:300px; overflow-y:auto; white-space:pre-wrap;"></pre>
+    <button onclick="document.getElementById('update-modal').style.display='none'"
+    style="margin-top:12px; background:transparent; border:1px solid #555;
+    color:#888; padding:4px 12px; cursor:pointer; font-family:monospace;">
+    CLOSE</button>
+  </div>
+</div>
 </body>
 </html>
