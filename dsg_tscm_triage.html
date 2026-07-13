@@ -9,7 +9,7 @@
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
 *{box-sizing:border-box;margin:0;padding:0;}
 html,body{background:#040810;min-height:100vh;}
-.dr{background:#070c14;color:#b8d4e8;font-family:'Exo 2',system-ui,sans-serif;font-size:14px;line-height:1.4;max-width:1200px;margin:0 auto;border:1px solid #14263a;}
+.dr{background:#070c14;color:#b8d4e8;font-family:'Exo 2',system-ui,sans-serif;font-size:clamp(14px,1.05vw,19px);line-height:1.4;max-width:min(1800px,97vw);margin:0 auto;border:1px solid #14263a;}
 @keyframes rp{0%{transform:scale(.85);opacity:.85;}100%{transform:scale(1.18);opacity:0;}}
 @keyframes sp{0%,100%{border-color:#00c8d7;}50%{border-color:#00f0ff;}}
 @keyframes db{0%,100%{opacity:1;}50%{opacity:.25;}}
@@ -76,10 +76,10 @@ html,body{background:#040810;min-height:100vh;}
 .run-out-status{padding:5px 12px;font-family:'Share Tech Mono',monospace;font-size:11px;font-weight:600;letter-spacing:.04em;border-top:1px solid #12283c;background:#08131e;}
 .scan-btn-sm:hover{color:#00c8d7;border-color:#00c8d755;}
 .main-area{display:flex;}
-.left-col{width:262px;min-width:262px;height:520px;overflow-y:auto;border-right:1px solid #14263a;}
-.right-col{flex:1;overflow-y:auto;max-height:520px;padding:13px;}
+.left-col{width:262px;min-width:262px;height:calc(100vh - 300px);min-height:440px;overflow-y:auto;border-right:1px solid #14263a;}
+.right-col{flex:1;overflow-y:auto;max-height:calc(100vh - 300px);min-height:440px;padding:13px;}
 @media(max-width:900px){.left-col{width:215px;min-width:215px;}.mb{min-width:68px;}}
-@media(max-width:700px){.main-area{flex-direction:column;}.left-col{width:100%;min-width:unset;height:400px;border-right:none;border-bottom:1px solid #14263a;}.right-col{max-height:none;}.mb{min-width:72px;}}
+@media(max-width:700px){.main-area{flex-direction:column;}.left-col{width:100%;min-width:unset;height:400px;min-height:unset;border-right:none;border-bottom:1px solid #14263a;}.right-col{max-height:none;min-height:unset;}.mb{min-width:72px;}}
 </style>
 </head>
 <body>
@@ -302,7 +302,7 @@ html,body{background:#040810;min-height:100vh;}
         <button onclick="closeCtx()" style="background:none;border:none;cursor:pointer;color:#2e5070;font-family:'Share Tech Mono',monospace;font-size:11px;" onmouseover="this.style.color='#00c8d7'" onmouseout="this.style.color='#2e5070'">[CLOSE]</button>
       </div>
     </div>
-    <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
+    <div class="cb" id="console" style="height:clamp(280px,calc(100vh - 560px),1000px);overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
       <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4b — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
