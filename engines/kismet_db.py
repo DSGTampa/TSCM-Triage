@@ -185,6 +185,11 @@ class KismetDB:
         rows = self._query("SELECT COUNT(*) AS n FROM devices")
         return bool(rows)
 
+    def count_devices(self):
+        """Total device rows in the capture (0 if unreadable/empty)."""
+        rows = self._query("SELECT COUNT(*) AS n FROM devices")
+        return rows[0]["n"] if rows else 0
+
 
 # ── SSID extraction helper ──────────────────────────────────────────────────
 def _extract_primary_ssid(d):

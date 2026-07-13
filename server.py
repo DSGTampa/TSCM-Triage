@@ -194,15 +194,24 @@ def validation_page():
 
 @app.route('/api/validation/aps')
 def api_validation_aps():
-    """Wi-Fi access points for Step 1, plus the saved session for resume."""
+    """Wi-Fi access points for Step 1, plus the saved session for resume.
+
+    Also reports which capture file is being read and its total device count so
+    the UI can show the examiner *why* the list may be empty (e.g. a live capture
+    that has not accumulated devices yet, or one with no source attached).
+    """
     db = kismet_db.open_db()
     session = _session.load()
+    capture = kismet_db.resolve_db_path()
+    capture_name = os.path.basename(capture) if capture else None
     if db is None or not db.is_available():
         return jsonify({'aps': [], 'session': session,
-                        'kismet_connected': False,
-                        'error': 'kismet_disconnected'})
+                        'kismet_connected': False, 'capture': capture_name,
+                        'device_count': 0, 'error': 'kismet_disconnected'})
     return jsonify({'aps': net_validation.list_aps(db),
-                    'session': session, 'kismet_connected': True})
+                    'session': session, 'kismet_connected': True,
+                    'capture': capture_name,
+                    'device_count': db.count_devices()})
 
 
 @app.route('/api/validation/clients')

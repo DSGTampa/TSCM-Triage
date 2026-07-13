@@ -27,6 +27,9 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 .kis-badge{font-family:var(--mono);font-size:11px;padding:4px 11px;border-radius:12px;letter-spacing:.06em;border:1px solid var(--border);color:var(--dim);}
 .kis-badge.ok{color:var(--green);border-color:#3ddc8440;background:#3ddc8410;}
 .kis-badge.off{color:var(--amber);border-color:#f0a83240;background:#f0a83210;}
+.cap-info{font-family:var(--mono);font-size:12px;color:var(--dim);margin:2px 0 8px;}
+.cap-info.warn{color:var(--amber);}
+.cap-info b{color:var(--body);font-weight:400;}
 /* content */
 .content{padding:16px 22px 40px;display:flex;flex-direction:column;gap:16px;}
 .val-step{border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:14px 16px;}
@@ -92,6 +95,7 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
     </div>
     <div class="spacer"></div>
     <span class="kis-badge" id="kis-badge">◌ KISMET</span>
+    <button class="btn" id="val-refresh" title="Reload from the newest Kismet capture">⟳ REFRESH</button>
     <a class="back-link" href="/">‹ TRIAGE</a>
   </div>
 
@@ -105,7 +109,8 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
           <button class="btn" id="val-clear-all">CLEAR ALL</button>
         </div>
       </div>
-      <div class="val-hint">Check the access points that belong to the client's own network. Kismet must be running (or a recent .kismet capture must exist).</div>
+      <div class="val-hint">Check the access points that belong to the client's own network. Kismet must be running (or a recent .kismet capture must exist). The list auto-refreshes every 12 seconds.</div>
+      <div class="cap-info" id="cap-info">◌ waiting for capture…</div>
       <div class="val-search">
         <input type="text" id="ap-search" placeholder="Search by SSID, MAC, or vendor" autocomplete="off">
         <button class="btn" id="ap-search-clear">CLEAR</button>
@@ -153,7 +158,22 @@ const Validation = {
 
   async ensure(){
     this.wire();
-    await this.loadAps();          // also restores saved session
+    await this.loadAps(true);          // also restores saved session
+    if(this.selected.size) await this.loadClients();
+    // Live capture: poll for new devices so the examiner never has to reload.
+    this._poll=setInterval(()=>this.tick(),12000);
+  },
+
+  // Auto-refresh cycle — skipped while the examiner is editing a field so their
+  // typing / open dropdown is never interrupted.
+  tick(){
+    const a=document.activeElement;
+    if(a && a.closest && a.closest(".content") && /^(INPUT|SELECT|TEXTAREA)$/.test(a.tagName)) return;
+    this.refresh();
+  },
+
+  async refresh(){
+    await this.loadAps(false);         // keep in-memory selections + edits
     if(this.selected.size) await this.loadClients();
   },
 
@@ -163,6 +183,7 @@ const Validation = {
     on("val-clear-all",()=>{ this.selected.clear(); this.renderAps(); this.saveAps(); this.loadClients(); });
     on("val-enroll",()=>this.enroll());
     on("val-report",()=>this.report());
+    on("val-refresh",()=>this.refresh());
 
     const ai=document.getElementById("ap-search");
     if(ai) ai.addEventListener("input",()=>this.applyApFilter());
@@ -210,23 +231,33 @@ const Validation = {
     this.saveClient(mac);
   },
 
-  badge(connected){
+  badge(connected,count){
     const b=document.getElementById("kis-badge");
     if(!b) return;
-    if(connected){ b.className="kis-badge ok"; b.textContent="● KISMET LIVE"; }
+    if(connected){ b.className="kis-badge ok"; b.textContent="● KISMET · "+(count||0)+" dev"; }
     else { b.className="kis-badge off"; b.textContent="○ KISMET OFFLINE"; }
   },
 
-  async loadAps(){
+  updateCapInfo(){
+    const el=document.getElementById("cap-info"); if(!el) return;
+    const t=new Date().toLocaleTimeString("en-US",{hour12:false});
+    if(!this.capture){ el.className="cap-info warn"; el.innerHTML="⚠ No .kismet capture found. Start Kismet with a monitor-mode source, then it appears here."; return; }
+    if((this.deviceCount||0)===0){ el.className="cap-info warn"; el.innerHTML="⚠ Newest capture <b>"+esc(this.capture)+"</b> has 0 devices — is a monitor-mode source attached to Kismet? · checked "+t; return; }
+    el.className="cap-info"; el.innerHTML="capture <b>"+esc(this.capture)+"</b> · "+this.deviceCount+" devices · "+this.aps.length+" APs · updated "+t;
+  },
+
+  async loadAps(restoreSession){
     const box=document.getElementById("ap-list");
     try{
       const d=await (await fetch("/api/validation/aps")).json();
       this.aps=d.aps||[];
-      this.badge(d.kismet_connected!==false && this.aps.length>=0 && d.error===undefined);
-      if(d.session){
+      this.capture=d.capture; this.deviceCount=d.device_count;
+      this.badge(d.kismet_connected!==false && d.error===undefined, d.device_count);
+      if(restoreSession && d.session){
         (d.session.selected_aps||[]).forEach(m=>this.selected.add(m.toUpperCase()));
         this.clientState=d.session.clients||{};
       }
+      this.updateCapInfo();
     }catch(e){ if(box) box.innerHTML='<div class="empty-state">Kismet unavailable — is the capture running?</div>'; this.badge(false); return; }
     this.renderAps();
   },
