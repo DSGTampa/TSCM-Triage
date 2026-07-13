@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.4a</title>
+<title>DSG TSCM Triage v1.8.4b</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -96,7 +96,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
   <div style="display:flex;justify-content:center;align-items:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4a</span>
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4b</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
     <button id="update-btn" onclick="runUpdate()" style="display:inline-flex;align-items:center;gap:6px;background:#0a0a0a;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;cursor:pointer;letter-spacing:.06em;"><span id="update-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00ff41;"></span>UPDATE</button>
   </div>
@@ -209,6 +209,7 @@ html,body{background:#040810;min-height:100vh;}
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
         <button class="mb" onclick="showInfo('wifi',this)"><span style="font-size:15px;">⌘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">WIFI</span></button>
         <button class="mb" onclick="showInfo('bt',this)"><span style="font-size:15px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BLUETOOTH</span></button>
+        <button class="mb" onclick="showInfo('macreveal',this)"><span style="font-size:15px;">◈</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">MAC REVEAL</span></button>
         <button class="mb" onclick="showInfo('deauth',this)"><span style="font-size:15px;">⚡</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">DEAUTH DISC</span></button>
       </div>
     </div>
@@ -295,7 +296,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:280px;overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4a — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4b — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -314,13 +315,13 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4a &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4b &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
     <div style="min-width:200px;">
-      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4a — July 2026</div>
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4b — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">CAMERAS section renamed IOT DISCOVERY — added VOICE ASST + SMART TV panels</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACK HW: Hak5 OUI 00:13:37 + Cloud C2 DNS check + Hak5 port scan</span></div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">HACKER HUNTING: ROGUE DHCP, ARP POISON, SSL INTCPT, DNS TUNNEL panels</span></div>
@@ -613,6 +614,42 @@ const ID={
     {y:'desc',x:'Covert BLE audio bugs rarely advertise a real name'},
   ]},
 
+  macreveal:{t:'// MAC REVEAL — RANDOMIZED MAC CORRELATION',lines:[
+    {y:'comment',x:'// Identifies devices using randomized/locally administered MAC addresses and attempts to correlate them to their real hardware MAC.'},
+    {y:'comment',x:'// Randomized MACs appear in OUI scan as unresolved or flagged with the locally administered bit set (second nibble x2, x6, xA, or xE).'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 1 — RANDOMIZED MAC SCAN'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/wireless/arp_full.txt | awk \'{print $2}\' | while read mac; do second=$(echo $mac | cut -d: -f1 | tr a-f A-F); case ${second: -1} in 2|6|A|E) echo "RANDOMIZED: $mac";; esac; done | tee {CASE_PATH}/wireless/randomized_macs.txt'},
+    {y:'desc',x:'↳ Identifies locally administered MACs on the wired network'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 2 — PROBE REQUEST CAPTURE (60 sec)'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo tshark -i {WIFACE}mon -a duration:60 -Y "wlan.fc.type_subtype == 0x04" -T fields -e wlan.sa -e wlan.ssid -e wlan.seq 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/probe_requests.txt'},
+    {y:'desc',x:'↳ Captures 802.11 probe requests — devices frequently leak real MAC in directed probes before randomization applies'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 3 — DHCP HOSTNAME CORRELATION (60 sec)'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "bootp" -T fields -e eth.src -e bootp.option.hostname -e bootp.option.vendor_class_id 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/dhcp_hostname_correlation.txt'},
+    {y:'desc',x:'↳ DHCP requests include device hostname — correlates randomized MAC to a real device identity'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 4 — mDNS MAC CORRELATION (60 sec)'},
+    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "mdns" -T fields -e eth.src -e dns.qry.name -e dns.resp.name 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/mdns_mac_correlation.txt'},
+    {y:'desc',x:'↳ mDNS announcements expose device names tied to MAC — cross-reference against randomized MAC list'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 5 — SEQUENCE NUMBER ANALYSIS (60 sec)'},
+    {y:'cmd',x:'sudo tshark -i {WIFACE}mon -a duration:60 -Y "wlan" -T fields -e wlan.sa -e wlan.seq 2>/dev/null | sort -k1,1 -k2,2n | tee {CASE_PATH}/wireless/sequence_correlation.txt'},
+    {y:'desc',x:'↳ 802.11 sequence numbers increment globally per device — correlates multiple randomized MACs that share a sequence counter to the same physical device'},
+    {y:'blank'},
+    {y:'comment',x:'// COMMAND 6 — FULL CORRELATION REPORT'},
+    {y:'cmd',x:'echo "=== DSG MAC REVEAL REPORT ===" > {CASE_PATH}/wireless/mac_reveal_report.txt && echo "Generated: $(date)" >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "" >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "--- RANDOMIZED MACs DETECTED ---" >> {CASE_PATH}/wireless/mac_reveal_report.txt && cat {CASE_PATH}/wireless/randomized_macs.txt >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "" >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "--- PROBE REQUEST LEAKAGE ---" >> {CASE_PATH}/wireless/mac_reveal_report.txt && cat {CASE_PATH}/wireless/probe_requests.txt >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "" >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "--- DHCP HOSTNAME CORRELATION ---" >> {CASE_PATH}/wireless/mac_reveal_report.txt && cat {CASE_PATH}/wireless/dhcp_hostname_correlation.txt >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "" >> {CASE_PATH}/wireless/mac_reveal_report.txt && echo "--- mDNS CORRELATION ---" >> {CASE_PATH}/wireless/mac_reveal_report.txt && cat {CASE_PATH}/wireless/mdns_mac_correlation.txt >> {CASE_PATH}/wireless/mac_reveal_report.txt && cat {CASE_PATH}/wireless/mac_reveal_report.txt'},
+    {y:'desc',x:'↳ Cross-references all capture files to produce a unified MAC reveal report'},
+    {y:'blank'},
+    {y:'warn',x:'△ Devices using MAC randomization are not inherently suspicious — modern iOS, Android, and Windows 11 devices randomize by default. The goal is correlation: if a randomized MAC appears in probe requests with a real MAC for the same sequence range, that is the device\'s hardware address.'},
+    {y:'warn',x:'△ Directed probe requests (probing for a specific SSID) almost always use the real hardware MAC. Passive/broadcast probes use randomized.'},
+    {y:'warn',x:'△ DHCP hostname and mDNS name correlation often reveals device owner and model even when MAC is randomized.'},
+    {y:'blank'},
+    {y:'comment',x:'// Locally administered bit: if the second character of the first MAC'},
+    {y:'comment',x:'// octet is 2, 6, A, or E — the MAC is randomized or spoofed.'},
+    {y:'comment',x:'// Examples: x2:xx:xx / x6:xx:xx / xA:xx:xx / xE:xx:xx'},
+  ]},
 
   macfp:{t:'// MAC ADDRESS FINGERPRINTING',lines:[
     {y:'warn',x:'// Detects real hardware identity behind MAC randomization over time'},
@@ -1341,7 +1378,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.4a — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.4b — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1364,7 +1401,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4a',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4b',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1453,7 +1490,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4a','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4b','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
