@@ -1,0 +1,4 @@
+# DSG TSCM Triage — Python dependencies
+# Install:  pip install -r requirements.txt
+flask
+flask-cors        # optional; server falls back to manual CORS headers if absent

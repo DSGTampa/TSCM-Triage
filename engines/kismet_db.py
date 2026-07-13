@@ -203,22 +203,38 @@ def _extract_primary_ssid(d):
 
 
 # ── db path resolution ──────────────────────────────────────────────────────
-# Default search location for Kismet capture logs. Overridable so a Raspberry Pi
-# / USB deployment can point at an external drive.
-DEFAULT_GLOB = os.environ.get("KISMET_GLOB", "/home/pentester/*.kismet")
+# Where to look for Kismet capture logs. Kept username-agnostic so the tool works
+# on any machine: it searches the CURRENT user's home and the case-output tree the
+# WIFI panel writes to (~/DSG-TSCM/cases/.../wireless/kismet/), plus the cwd.
+# Fully overridable — set KISMET_DB to a specific file, or KISMET_GLOB to a single
+# glob (e.g. a USB/external drive on a Raspberry Pi deployment).
+DEFAULT_GLOBS = [
+    os.path.expanduser("~/*.kismet"),
+    os.path.expanduser("~/DSG-TSCM/cases/**/*.kismet"),
+    os.path.expanduser("~/dsg-tscm/**/*.kismet"),
+    "*.kismet",  # current working directory
+]
 
 
 def resolve_db_path(pattern=None):
     """Return the most recently modified .kismet file, or None if there are none.
 
-    An explicit KISMET_DB env var wins; otherwise the newest match of `pattern`
-    (default DEFAULT_GLOB) is chosen.
+    Precedence: explicit KISMET_DB file > `pattern` arg > KISMET_GLOB env >
+    the built-in username-agnostic DEFAULT_GLOBS. The newest match (by mtime)
+    across all searched patterns wins.
     """
     explicit = os.environ.get("KISMET_DB", "").strip()
     if explicit:
         return explicit if os.path.exists(explicit) else None
-    pattern = pattern or DEFAULT_GLOB
-    matches = glob.glob(pattern)
+    if pattern:
+        patterns = [pattern]
+    elif os.environ.get("KISMET_GLOB", "").strip():
+        patterns = [os.environ["KISMET_GLOB"].strip()]
+    else:
+        patterns = DEFAULT_GLOBS
+    matches = []
+    for pat in patterns:
+        matches.extend(glob.glob(pat, recursive=True))
     if not matches:
         return None
     return max(matches, key=os.path.getmtime)
