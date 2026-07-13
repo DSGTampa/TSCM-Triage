@@ -1,6 +1,7 @@
 __pycache__/
 # Runtime state written by the Network Validation tool
 data/
+data_archive_*/
 reports/
 # Server log written by update.sh's detached restart
 server.log

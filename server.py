@@ -5,7 +5,7 @@ Surveillance Specialist Group, LLC
 Run: python3 ~/dsg-tscm/server.py
 Access: http://127.0.0.1:5555
 """
-import os, re, sys, time, socket, subprocess, datetime, platform
+import os, re, sys, time, json, shutil, glob, socket, subprocess, datetime, platform
 from flask import Flask, send_file, jsonify, request, Response
 
 app = Flask(__name__)
@@ -25,6 +25,19 @@ from engines import kismet_db, net_validation, baseline_mgr
 
 _baseline = baseline_mgr.BaselineManager(BASELINE_PATH)
 _session = net_validation.ValidationSession(SESSION_PATH)
+
+# Session-setup state: 'new' after a fresh-location reset, else 'resumed'.
+_SESSION_TYPE = 'resumed'
+_DATA_ARCHIVED = False
+
+
+def _kismet_running():
+    """True if a live Kismet process is present."""
+    try:
+        return subprocess.run(['pgrep', '-x', 'kismet'],
+                              capture_output=True).returncode == 0
+    except Exception:
+        return False
 
 # Where case output is written. Defaults to ~/DSG-TSCM/cases, but can be
 # redirected to an external drive (e.g. a USB stick on a Raspberry Pi) by
@@ -294,6 +307,64 @@ def api_validation_report():
         pass  # a save failure must not stop the examiner viewing the report
 
     return Response(html_doc, mimetype='text/html')
+
+
+# ── SESSION SETUP (new location / resume) ──────────────────────────────────
+@app.route('/api/session/status')
+def api_session_status():
+    """State the Session Setup modal uses to decide new-vs-resume and to show
+    live progress: is Kismet live, how many devices in the newest capture, how
+    old that capture is, and whether a baseline is enrolled."""
+    capture = kismet_db.resolve_db_path()
+    devices, age, mtime = 0, None, None
+    if capture and os.path.exists(capture):
+        try:
+            devices = kismet_db.KismetDB(capture).count_devices()
+        except Exception:
+            devices = 0
+        try:
+            mtime = os.path.getmtime(capture)
+            age = (time.time() - mtime) / 3600.0
+        except OSError:
+            pass
+    return jsonify({
+        'session_type': _SESSION_TYPE,
+        'kismet_running': _kismet_running(),
+        'devices_found': devices,
+        'session_age_hours': round(age, 3) if age is not None else None,
+        'capture': os.path.basename(capture) if capture else None,
+        'capture_mtime': mtime,
+        'data_archived': _DATA_ARCHIVED,
+        'baseline_enrolled': _baseline.get_summary().get('total', 0) > 0,
+    })
+
+
+@app.route('/api/session/new', methods=['POST'])
+def api_session_new():
+    """Start a fresh location: archive the working data dir so nothing is truly
+    lost, reset the working files to empty, and hand back the command the
+    examiner runs to start a fresh dual-band Kismet capture (the server cannot
+    enter monitor mode itself — that needs root)."""
+    global _SESSION_TYPE, _DATA_ARCHIVED
+    archived = None
+    if os.path.isdir(DATA_DIR) and os.listdir(DATA_DIR):
+        ts = time.strftime('%Y%m%d-%H%M%S')
+        archived = os.path.join(BASE, 'data_archive_' + ts)
+        try:
+            shutil.move(DATA_DIR, archived)
+        except OSError as e:
+            return jsonify({'ok': False, 'error': 'archive failed: %s' % e}), 500
+    os.makedirs(DATA_DIR, exist_ok=True)
+    # Fresh, empty working files (TSCM uses baseline + validation session).
+    _baseline.clear()
+    _session.save({'selected_aps': [], 'clients': {}})
+    _SESSION_TYPE = 'new'
+    _DATA_ARCHIVED = bool(archived)
+    return jsonify({
+        'ok': True,
+        'archived_to': os.path.basename(archived) if archived else None,
+        'start_command': 'sudo bash %s/start_kismet.sh' % BASE,
+    })
 
 
 if __name__ == '__main__':

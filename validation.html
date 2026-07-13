@@ -82,6 +82,37 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 .legend{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:2px;}
 .legend .v{color:var(--blue);} .legend .u{color:var(--red);}
 .pagefoot{padding:12px 22px;border-top:1px solid #14263a;font-family:var(--mono);font-size:10px;color:#1a3050;letter-spacing:.04em;}
+/* ── Session Setup modal (blocking) ── */
+.sess-overlay{position:fixed;inset:0;z-index:1000;background:rgba(4,8,16,0.88);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;padding:20px;}
+.sess-overlay.show{display:flex;}
+.sess-box{width:100%;max-width:620px;background:var(--panel);border:1px solid var(--cyan);border-radius:10px;box-shadow:0 0 46px rgba(0,200,215,0.18);padding:26px 28px;font-family:var(--ui);}
+.sess-box h2{font-family:var(--mono);color:var(--cyan);font-size:18px;letter-spacing:3px;font-weight:400;text-align:center;margin-bottom:6px;}
+.sess-box .sub{color:var(--dim);font-family:var(--mono);font-size:12px;text-align:center;margin-bottom:20px;}
+.sess-screen{display:none;} .sess-screen.on{display:block;}
+.sess-choice-btn{display:block;width:100%;text-align:left;border-radius:8px;padding:16px 18px;margin-bottom:14px;cursor:pointer;background:#0a1520;transition:all .12s;outline:none;}
+.sess-choice-btn .lbl{font-family:var(--mono);font-size:15px;letter-spacing:1px;font-weight:700;margin-bottom:5px;}
+.sess-choice-btn .desc{font-size:12.5px;color:var(--body);line-height:1.5;}
+.sess-new{border:2px solid var(--green);} .sess-new .lbl{color:var(--green);}
+.sess-new:hover{background:#3ddc8412;}
+.sess-resume-btn{border:2px solid #2f6b4a;} .sess-resume-btn .lbl{color:#5aa87a;}
+.sess-resume-btn:hover{background:#3ddc8408;border-color:var(--green);}
+.sess-warn{border:1px solid var(--amber);border-left:4px solid var(--amber);border-radius:8px;background:#1a1305;color:#f0d9a8;padding:14px 16px;font-size:13px;line-height:1.55;margin-bottom:18px;}
+.sess-warn code{color:#f0a832;}
+.sess-actions{display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap;}
+.sess-btn{font-family:var(--mono);font-size:13px;font-weight:600;letter-spacing:.06em;padding:10px 18px;border-radius:5px;cursor:pointer;outline:none;border:1px solid var(--border);background:#0a1520;color:var(--body);transition:all .12s;}
+.sess-btn:hover{border-color:var(--cyan);color:var(--cyan);}
+.sess-btn.danger{border-color:var(--red);color:var(--red);} .sess-btn.danger:hover{background:#ff6b6b12;}
+.sess-btn.go{border-color:var(--green);color:var(--green);} .sess-btn.go:hover{background:#3ddc8412;}
+.sess-spinner{width:44px;height:44px;border:3px solid #14324a;border-top-color:var(--cyan);border-radius:50%;margin:6px auto 14px;animation:sess-spin 0.9s linear infinite;}
+@keyframes sess-spin{to{transform:rotate(360deg);}}
+.sess-load-title{font-family:var(--mono);color:var(--cyan);font-size:13.5px;letter-spacing:2px;text-align:center;margin-bottom:12px;}
+.sess-count{font-family:var(--mono);font-size:22px;color:var(--green);text-align:center;margin:12px 0;}
+.sess-cmd-lbl{font-family:var(--mono);font-size:11px;color:var(--dim);margin-bottom:4px;letter-spacing:.05em;}
+.sess-cmd{background:var(--bg);border:1px solid var(--border);border-radius:6px;padding:10px 12px;font-family:var(--mono);font-size:12px;color:var(--green);word-break:break-all;margin:2px 0 12px;line-height:1.5;}
+.sess-bar{height:4px;background:#14324a;border-radius:2px;overflow:hidden;margin:14px 0 6px;}
+.sess-bar > i{display:block;height:100%;width:0;background:var(--cyan);transition:width 1s linear;}
+.sess-steps{font-family:var(--mono);font-size:11px;color:var(--dim);text-align:center;margin-bottom:4px;}
+#sess-toast{display:none;position:fixed;top:14px;left:50%;transform:translateX(-50%);z-index:900;background:#0e1822;border:1px solid var(--cyan);color:var(--cyan);font-family:var(--mono);font-size:13px;padding:10px 18px;border-radius:6px;box-shadow:0 4px 20px rgba(0,0,0,.45);max-width:90vw;}
 </style>
 </head>
 <body>
@@ -147,6 +178,55 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 
   <div class="pagefoot">DSG TSCM TRIAGE · NETWORK VALIDATION · Surveillance Specialist Group, LLC · FL PI LICENSE A3200144 · (877) 787-7075</div>
 </div>
+
+<!-- ── SESSION SETUP MODAL (blocking) ── -->
+<div class="sess-overlay" id="sess-overlay">
+  <div class="sess-box">
+    <h2>DSG TSCM TRIAGE — SESSION SETUP</h2>
+    <div class="sub" id="sess-subtitle">No active capture detected — choose how to begin</div>
+
+    <div class="sess-screen on" id="sess-choice">
+      <button class="sess-choice-btn sess-new" id="sess-new-btn">
+        <div class="lbl">🛰 NEW LOCATION — START FRESH</div>
+        <div class="desc">Clears all previous logs, enrollments, incidents, and baseline data. Starts a new Kismet capture session for this location.</div>
+      </button>
+      <button class="sess-choice-btn sess-resume-btn" id="sess-resume-btn">
+        <div class="lbl">↺ RESUME — CONTINUE PREVIOUS SESSION</div>
+        <div class="desc">Keep existing baseline and enrollment data. Connect to the current or most recent Kismet capture.</div>
+      </button>
+    </div>
+
+    <div class="sess-screen" id="sess-confirm">
+      <div class="sess-warn">⚠ WARNING — This will permanently clear all previous session data for this location. Existing data is archived to <code>data_archive_&lt;timestamp&gt;</code> first, so nothing is truly deleted. Are you sure?</div>
+      <div class="sess-actions">
+        <button class="sess-btn" id="sess-cancel">CANCEL</button>
+        <button class="sess-btn danger" id="sess-confirm-btn">CONFIRM — CLEAR &amp; START</button>
+      </div>
+    </div>
+
+    <div class="sess-screen" id="sess-loading">
+      <div class="sess-spinner"></div>
+      <div class="sess-load-title">KISMET STARTING — PLEASE WAIT — SCANNING FOR DEVICES</div>
+      <div class="sess-cmd-lbl">Run this in a terminal to start the dual-band capture (needs sudo):</div>
+      <div class="sess-cmd" id="sess-cmd">—</div>
+      <div class="sess-count" id="sess-count">DEVICES FOUND SO FAR: 0</div>
+      <div class="sess-bar"><i id="sess-bar-fill"></i></div>
+      <div class="sess-steps" id="sess-steps">CLEARING DATA ✓ · WAITING FOR DEVICES…</div>
+      <div class="sess-actions" style="margin-top:14px;justify-content:center;">
+        <button class="sess-btn go" id="sess-proceed">PROCEED NOW ›</button>
+      </div>
+    </div>
+
+    <div class="sess-screen" id="sess-resume-warn">
+      <div class="sess-warn" id="sess-resume-msg"></div>
+      <div class="sess-actions">
+        <button class="sess-btn" id="sess-resume-cancel">‹ BACK</button>
+        <button class="sess-btn go" id="sess-resume-proceed">PROCEED ›</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="sess-toast"></div>
 
 <script>
 const VAL_STATUS = { UNVERIFIED: "UNVERIFIED", VERIFIED: "VERIFIED — LOCATED", UNRESOLVED: "UNRESOLVED — NOT FOUND" };
@@ -388,7 +468,88 @@ const Validation = {
   },
 };
 
-Validation.ensure();
+// ── Session Setup gate — decides new-vs-resume before the tool loads ──
+const SessionSetup = {
+  status:null, _poll:null, _elapsed:0, beginMsg:false,
+  el(id){ return document.getElementById(id); },
+  screen(id){ ["sess-choice","sess-confirm","sess-loading","sess-resume-warn"].forEach(s=>{ const e=this.el(s); if(e) e.classList.toggle("on", s===id); }); },
+  show(){ this.el("sess-overlay").classList.add("show"); },
+  hide(){ this.el("sess-overlay").classList.remove("show"); },
+  toast(msg){ const t=this.el("sess-toast"); if(!t) return; t.textContent=msg; t.style.display="block"; setTimeout(()=>{ t.style.display="none"; }, 9000); },
+
+  async init(){
+    this.wire();
+    if(sessionStorage.getItem("dsg_sess_done")){ this.proceed(true); return; }
+    let s=null; try{ s=await (await fetch("/api/session/status")).json(); }catch(e){}
+    this.status=s;
+    const stale = s && s.session_age_hours!=null && s.session_age_hours>2;
+    const empty = s && (s.devices_found||0)===0;
+    const noKismet = !s || !s.kismet_running;
+    if(noKismet || stale || empty){
+      this.el("sess-subtitle").textContent = noKismet ? "No live Kismet session detected — choose how to begin"
+        : stale ? "Most recent capture is over 2 hours old — choose how to begin"
+        : "Current capture has no devices yet — choose how to begin";
+      this.screen("sess-choice"); this.show();
+    } else { this.proceed(true); }
+  },
+
+  wire(){
+    const on=(id,fn)=>{ const b=this.el(id); if(b) b.addEventListener("click",fn); };
+    on("sess-new-btn",()=>this.screen("sess-confirm"));
+    on("sess-cancel",()=>this.screen("sess-choice"));
+    on("sess-confirm-btn",()=>this.confirmNew());
+    on("sess-resume-btn",()=>this.resume());
+    on("sess-resume-cancel",()=>this.screen("sess-choice"));
+    on("sess-resume-proceed",()=>this.proceed());
+    on("sess-proceed",()=>this.proceed());
+  },
+
+  proceed(silent){
+    if(this._poll){ clearInterval(this._poll); this._poll=null; }
+    sessionStorage.setItem("dsg_sess_done","1");
+    this.hide();
+    if(!window.__valStarted){ window.__valStarted=true; Validation.ensure(); }
+    if(this.beginMsg && !silent){ this.toast("Begin by identifying your client network APs and verifying all known devices."); }
+  },
+
+  async confirmNew(){
+    let d=null; try{ d=await (await fetch("/api/session/new",{method:"POST"})).json(); }catch(e){}
+    this.screen("sess-loading");
+    const cmd=(d&&d.start_command)||"sudo bash ~/dsg-tscm/start_kismet.sh";
+    this.el("sess-cmd").textContent=cmd;
+    this.el("sess-steps").textContent=((d&&d.archived_to)?("ARCHIVED "+d.archived_to+" · "):"")+"CLEARING DATA ✓ · WAITING FOR DEVICES…";
+    this._elapsed=0; this.beginMsg=true;
+    const tick=async()=>{
+      this._elapsed+=5;
+      let s=null; try{ s=await (await fetch("/api/session/status")).json(); }catch(e){}
+      const n=s?(s.devices_found||0):0;
+      this.el("sess-count").textContent="DEVICES FOUND SO FAR: "+n;
+      this.el("sess-bar-fill").style.width=Math.min(100,this._elapsed/60*100)+"%";
+      if(s && s.kismet_running && n>0) this.el("sess-steps").textContent="KISMET LIVE ✓ · DEVICES INCOMING";
+      if(this._elapsed>=60) this.proceed();
+    };
+    this.el("sess-count").textContent="DEVICES FOUND SO FAR: 0";
+    this._poll=setInterval(tick,5000);
+  },
+
+  async resume(){
+    let s=this.status; if(!s){ try{ s=await (await fetch("/api/session/status")).json(); }catch(e){} }
+    const age=s?s.session_age_hours:null;
+    let msg="";
+    if(age!=null && age>2){
+      const dt=(s&&s.capture_mtime)?new Date(s.capture_mtime*1000).toLocaleString():"unknown";
+      msg+="Last session was "+dt+". Devices may have changed. Consider re-running baseline enrollment before monitoring.";
+    }
+    if(s && !s.baseline_enrolled){
+      msg+=(msg?"<br><br>":"")+"No baseline enrolled for this session. Site Awareness alerts will fire for all devices. Consider running Network Validation first.";
+    }
+    if(!msg){ this.proceed(); return; }
+    this.el("sess-resume-msg").innerHTML="⚠ "+msg;
+    this.screen("sess-resume-warn");
+  },
+};
+
+SessionSetup.init();
 </script>
 </body>
 </html>

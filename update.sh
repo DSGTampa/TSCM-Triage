@@ -27,7 +27,7 @@ mkdir -p "$INSTALL_DIR"
 
 # 3. Deploy app files
 echo -e "${WHITE}[2/4]${NC} Deploying files to ${INSTALL_DIR}..."
-for f in dsg_tscm_triage.html validation.html server.py analyze_capture.sh launch.sh launch_server.sh; do
+for f in dsg_tscm_triage.html validation.html server.py start_kismet.sh analyze_capture.sh launch.sh launch_server.sh; do
   if [ -f "$SRC_DIR/$f" ]; then
     cp "$SRC_DIR/$f" "$INSTALL_DIR/$f"
     echo -e "   ${GREEN}✓${NC} $f"
