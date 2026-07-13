@@ -1,1 +1,4 @@
 __pycache__/
+# Runtime state written by the Network Validation tool
+data/
+reports/

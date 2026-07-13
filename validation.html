@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>DSG TSCM Triage — Network Validation</title>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
+:root{
+  --bg:#070c14; --bg2:#0a121e; --panel:#0e1822; --row:#0b1621; --rowh:#122236;
+  --cyan:#00c8d7; --green:#3ddc84; --blue:#00aaff; --red:#ff6b6b; --amber:#f0a832;
+  --dim:#2e5070; --body:#b8d4e8; --border:#162536;
+  --mono:'Share Tech Mono','Courier New',monospace; --ui:'Exo 2',system-ui,sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0;}
+html,body{background:#040810;min-height:100vh;}
+body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
+.dr{background:var(--bg);max-width:1200px;margin:0 auto;border:1px solid #14263a;min-height:100vh;}
+/* header */
+.hdr{display:flex;align-items:center;gap:14px;padding:16px 22px;border-bottom:1px solid #14263a;background:var(--bg2);}
+.hdr .logo{width:38px;height:38px;border:1.5px solid var(--cyan);border-radius:50%;display:flex;align-items:center;justify-content:center;color:var(--cyan);font-size:18px;flex:none;}
+.hdr h1{font-family:var(--mono);font-size:18px;letter-spacing:2px;color:var(--cyan);font-weight:400;}
+.hdr .sub{font-family:var(--mono);font-size:11px;color:var(--dim);letter-spacing:.08em;margin-top:2px;}
+.hdr .spacer{flex:1;}
+.back-link{display:inline-flex;align-items:center;gap:6px;font-family:var(--mono);font-size:12px;color:var(--dim);text-decoration:none;border:1px solid var(--border);border-radius:4px;padding:7px 13px;letter-spacing:.05em;transition:all .12s;}
+.back-link:hover{color:var(--cyan);border-color:#00c8d755;background:#0e1822;}
+.kis-badge{font-family:var(--mono);font-size:11px;padding:4px 11px;border-radius:12px;letter-spacing:.06em;border:1px solid var(--border);color:var(--dim);}
+.kis-badge.ok{color:var(--green);border-color:#3ddc8440;background:#3ddc8410;}
+.kis-badge.off{color:var(--amber);border-color:#f0a83240;background:#f0a83210;}
+/* content */
+.content{padding:16px 22px 40px;display:flex;flex-direction:column;gap:16px;}
+.val-step{border:1px solid var(--border);border-radius:6px;background:var(--panel);padding:14px 16px;}
+.val-head{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;}
+.val-title{color:var(--cyan);font-family:var(--mono);letter-spacing:2px;font-size:15px;}
+.val-sub{color:var(--dim);font-family:var(--mono);font-size:13px;}
+.val-actions{display:flex;gap:8px;}
+.val-hint{color:var(--dim);font-size:13px;margin:8px 0 10px;}
+.btn{background:#0a1520;border:1px solid var(--border);border-radius:4px;color:var(--dim);font-family:var(--mono);font-size:12px;font-weight:600;letter-spacing:.06em;padding:9px 14px;cursor:pointer;outline:none;transition:all .12s;}
+.btn:hover{color:var(--cyan);border-color:#00c8d755;background:#0e1822;}
+.btn.green{border-color:#3ddc8455;color:var(--green);background:#3ddc8410;}
+.btn.green:hover{background:#3ddc8422;border-color:var(--green);}
+.btn.cyan{border-color:#00c8d755;color:var(--cyan);background:#00c8d710;}
+.btn.cyan:hover{background:#00c8d722;border-color:var(--cyan);}
+/* search */
+.val-search{display:flex;gap:8px;margin:6px 0;}
+.val-search input{flex:1;height:40px;padding:0 12px;background:var(--bg);color:var(--body);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:13px;outline:none;}
+.val-search input:focus{border-color:var(--cyan);}
+.val-search input::placeholder{color:var(--dim);}
+.val-count{color:var(--dim);font-family:var(--mono);font-size:12px;margin:4px 0 8px;}
+.empty-state{color:var(--dim);font-family:var(--mono);font-size:13px;padding:18px;text-align:center;}
+/* AP list */
+.ap-list{display:flex;flex-direction:column;gap:6px;max-height:40vh;overflow:auto;}
+.ap-row{display:flex;align-items:center;gap:12px;padding:9px 11px;border:1px solid var(--border);border-radius:5px;background:var(--row);font-family:var(--mono);font-size:13px;cursor:pointer;}
+.ap-row:hover{background:var(--rowh);}
+.ap-row input{width:18px;height:18px;flex:none;accent-color:var(--green);}
+.ap-row.sel{border-color:var(--green);background:rgba(61,220,132,0.10);}
+.ap-row .ap-ssid{min-width:150px;color:var(--cyan);}
+.ap-row .ap-mac{min-width:150px;color:var(--body);}
+.ap-row .ap-vendor{flex:1;color:var(--body);overflow:hidden;text-overflow:ellipsis;white-space:nowrap;min-width:80px;}
+.ap-row .ap-ch,.ap-row .ap-sig{color:var(--dim);min-width:58px;}
+.ap-row .ap-clients{color:var(--amber);min-width:82px;text-align:right;}
+/* client table */
+.client-list{overflow:auto;max-height:52vh;}
+.ctable{width:100%;border-collapse:collapse;font-family:var(--mono);font-size:12.5px;}
+.ctable th,.ctable td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--row);vertical-align:middle;}
+.ctable th{color:var(--dim);position:sticky;top:0;background:var(--panel);z-index:1;letter-spacing:.05em;}
+.ctable .c-mac{color:var(--cyan);white-space:nowrap;}
+.ctable .c-shield{width:20px;text-align:center;color:var(--blue);}
+.ctable .c-status{background:#0a1520;color:var(--body);border:1px solid var(--border);border-radius:4px;padding:5px;font-family:var(--mono);font-size:12px;outline:none;}
+.ctable .c-notes{width:100%;min-width:150px;background:var(--bg);color:var(--body);border:1px solid var(--border);border-radius:4px;padding:6px;font-family:var(--mono);font-size:12px;outline:none;}
+.ctable .c-notes:focus,.ctable .c-status:focus{border-color:var(--cyan);}
+.crow.st-verified{background:rgba(0,170,255,0.08);}
+.crow.st-verified .c-mac{color:var(--blue);}
+.crow.st-unresolved{background:rgba(255,107,107,0.07);}
+.crow.st-unresolved .c-mac{color:var(--red);}
+/* footer */
+.val-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:6px;}
+.val-status{color:var(--dim);font-family:var(--mono);font-size:13px;}
+.legend{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:2px;}
+.legend .v{color:var(--blue);} .legend .u{color:var(--red);}
+.pagefoot{padding:12px 22px;border-top:1px solid #14263a;font-family:var(--mono);font-size:10px;color:#1a3050;letter-spacing:.04em;}
+</style>
+</head>
+<body>
+<div class="dr">
+
+  <div class="hdr">
+    <div class="logo">◈</div>
+    <div>
+      <h1>NETWORK VALIDATION</h1>
+      <div class="sub">DSG TSCM Triage · Counter-Surveillance</div>
+    </div>
+    <div class="spacer"></div>
+    <span class="kis-badge" id="kis-badge">◌ KISMET</span>
+    <a class="back-link" href="/">‹ TRIAGE</a>
+  </div>
+
+  <div class="content">
+    <!-- STEP 1 -->
+    <div class="val-step">
+      <div class="val-head">
+        <span class="val-title">STEP 1 — ACCESS POINT SELECTION</span>
+        <div class="val-actions">
+          <button class="btn" id="val-select-all">SELECT ALL</button>
+          <button class="btn" id="val-clear-all">CLEAR ALL</button>
+        </div>
+      </div>
+      <div class="val-hint">Check the access points that belong to the client's own network. Kismet must be running (or a recent .kismet capture must exist).</div>
+      <div class="val-search">
+        <input type="text" id="ap-search" placeholder="Search by SSID, MAC, or vendor" autocomplete="off">
+        <button class="btn" id="ap-search-clear">CLEAR</button>
+      </div>
+      <div class="val-count" id="ap-count"></div>
+      <div class="ap-list" id="ap-list"><div class="empty-state">Loading access points…</div></div>
+    </div>
+
+    <!-- STEP 2 -->
+    <div class="val-step" id="val-step2" style="display:none">
+      <div class="val-head">
+        <span class="val-title">STEP 2 — CLIENT DEVICE CHECKLIST</span>
+        <span class="val-sub" id="val-client-count"></span>
+      </div>
+      <div class="val-hint">Locate each device, set its status, and note where it was found. Verified devices turn <span style="color:var(--blue)">blue&nbsp;🛡</span>.</div>
+      <div class="val-search">
+        <input type="text" id="client-search" placeholder="Search by MAC, vendor, or device type" autocomplete="off">
+        <button class="btn" id="client-search-clear">CLEAR</button>
+      </div>
+      <div class="val-count" id="cl-count"></div>
+      <div class="client-list" id="client-list"></div>
+    </div>
+
+    <!-- FOOTER -->
+    <div class="val-step">
+      <div class="val-footer">
+        <button class="btn green" id="val-enroll">🛡 ENROLL ALL VERIFIED DEVICES INTO BASELINE</button>
+        <button class="btn cyan" id="val-report">GENERATE REPORT</button>
+        <span class="val-status" id="val-status"></span>
+      </div>
+      <div class="legend">STATUS:&nbsp; <span class="v">🛡 VERIFIED — LOCATED</span> &nbsp;·&nbsp; <span class="u">UNRESOLVED — NOT FOUND</span> &nbsp;·&nbsp; UNVERIFIED (default)</div>
+    </div>
+  </div>
+
+  <div class="pagefoot">DSG TSCM TRIAGE · NETWORK VALIDATION · Surveillance Specialist Group, LLC · FL PI LICENSE A3200144 · (877) 787-7075</div>
+</div>
+
+<script>
+const VAL_STATUS = { UNVERIFIED: "UNVERIFIED", VERIFIED: "VERIFIED — LOCATED", UNRESOLVED: "UNRESOLVED — NOT FOUND" };
+function esc(s){ return String(s==null?"":s).replace(/[&<>"']/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c])); }
+function fmtTime(ep){ if(!ep) return "—"; try{ return new Date(ep*1000).toLocaleTimeString('en-US',{hour12:false}); }catch(e){ return "—"; } }
+
+const Validation = {
+  aps: [], clients: [], selected: new Set(), clientState: {}, _saveTimer: null,
+
+  async ensure(){
+    this.wire();
+    await this.loadAps();          // also restores saved session
+    if(this.selected.size) await this.loadClients();
+  },
+
+  wire(){
+    const on=(id,fn)=>{ const b=document.getElementById(id); if(b) b.addEventListener("click",fn); };
+    on("val-select-all",()=>{ this.aps.forEach(a=>this.selected.add(a.mac.toUpperCase())); this.renderAps(); this.saveAps(); this.loadClients(); });
+    on("val-clear-all",()=>{ this.selected.clear(); this.renderAps(); this.saveAps(); this.loadClients(); });
+    on("val-enroll",()=>this.enroll());
+    on("val-report",()=>this.report());
+
+    const ai=document.getElementById("ap-search");
+    if(ai) ai.addEventListener("input",()=>this.applyApFilter());
+    on("ap-search-clear",()=>{ const i=document.getElementById("ap-search"); if(i) i.value=""; this.applyApFilter(); });
+    const ci=document.getElementById("client-search");
+    if(ci) ci.addEventListener("input",()=>this.applyClientFilter());
+    on("client-search-clear",()=>{ const i=document.getElementById("client-search"); if(i) i.value=""; this.applyClientFilter(); });
+
+    const apList=document.getElementById("ap-list");
+    if(apList) apList.addEventListener("change",(e)=>{
+      const row=e.target.closest(".ap-row");
+      if(row && e.target.matches(".ap-cb")){
+        const mac=row.dataset.mac;
+        if(e.target.checked) this.selected.add(mac); else this.selected.delete(mac);
+        row.classList.toggle("sel",e.target.checked);
+        this.saveAps(); this.loadClients();
+      }
+    });
+
+    const cl=document.getElementById("client-list");
+    if(cl){
+      cl.addEventListener("change",(e)=>{
+        const row=e.target.closest(".crow"); if(!row) return;
+        const mac=row.dataset.mac;
+        if(e.target.matches(".c-status")) this.setStatus(mac,e.target.value,row);
+        else if(e.target.matches(".c-cb")) this.setStatus(mac,e.target.checked?"VERIFIED":"UNVERIFIED",row);
+      });
+      cl.addEventListener("input",(e)=>{
+        const row=e.target.closest(".crow");
+        if(row && e.target.matches(".c-notes")){ this.rec(row.dataset.mac).notes=e.target.value; this.saveClient(row.dataset.mac); }
+      });
+    }
+  },
+
+  rec(mac){ mac=mac.toUpperCase(); if(!this.clientState[mac]) this.clientState[mac]={status:"UNVERIFIED",notes:""}; return this.clientState[mac]; },
+
+  setStatus(mac,status,row){
+    this.rec(mac).status=status;
+    if(row){
+      row.className="crow st-"+status.toLowerCase();
+      const cb=row.querySelector(".c-cb"); if(cb) cb.checked=status==="VERIFIED";
+      const sel=row.querySelector(".c-status"); if(sel) sel.value=status;
+      const sh=row.querySelector(".c-shield"); if(sh) sh.textContent=status==="VERIFIED"?"🛡":"";
+    }
+    this.saveClient(mac);
+  },
+
+  badge(connected){
+    const b=document.getElementById("kis-badge");
+    if(!b) return;
+    if(connected){ b.className="kis-badge ok"; b.textContent="● KISMET LIVE"; }
+    else { b.className="kis-badge off"; b.textContent="○ KISMET OFFLINE"; }
+  },
+
+  async loadAps(){
+    const box=document.getElementById("ap-list");
+    try{
+      const d=await (await fetch("/api/validation/aps")).json();
+      this.aps=d.aps||[];
+      this.badge(d.kismet_connected!==false && this.aps.length>=0 && d.error===undefined);
+      if(d.session){
+        (d.session.selected_aps||[]).forEach(m=>this.selected.add(m.toUpperCase()));
+        this.clientState=d.session.clients||{};
+      }
+    }catch(e){ if(box) box.innerHTML='<div class="empty-state">Kismet unavailable — is the capture running?</div>'; this.badge(false); return; }
+    this.renderAps();
+  },
+
+  renderAps(){
+    const box=document.getElementById("ap-list"); if(!box) return;
+    if(!this.aps.length){ box.innerHTML='<div class="empty-state">No access points found. Start Kismet, then reload.</div>'; this.applyApFilter(); return; }
+    box.innerHTML=this.aps.map(a=>{
+      const on=this.selected.has(a.mac.toUpperCase());
+      const search=esc(((a.ssid||"")+" "+a.mac+" "+(a.vendor||"")).toLowerCase());
+      return '<label class="ap-row'+(on?" sel":"")+'" data-mac="'+a.mac.toUpperCase()+'" data-search="'+search+'">'+
+        '<input type="checkbox" class="ap-cb"'+(on?" checked":"")+">"+
+        '<span class="ap-ssid">'+esc(a.ssid||"(hidden)")+"</span>"+
+        '<span class="ap-mac">'+esc(a.mac)+"</span>"+
+        '<span class="ap-vendor">'+esc(a.vendor||"—")+"</span>"+
+        '<span class="ap-ch">ch '+esc(a.channel||"?")+"</span>"+
+        '<span class="ap-sig">'+(a.rssi?a.rssi+" dBm":"—")+"</span>"+
+        '<span class="ap-clients">'+(a.client_count||0)+" clients</span>"+
+      "</label>";
+    }).join("");
+    this.applyApFilter();
+  },
+
+  applyApFilter(){
+    const inp=document.getElementById("ap-search");
+    const term=(inp?inp.value:"").trim().toLowerCase();
+    let shown=0;
+    document.querySelectorAll("#ap-list .ap-row").forEach(r=>{
+      const m=!term||(r.dataset.search||"").indexOf(term)!==-1;
+      r.style.display=m?"":"none"; if(m) shown++;
+    });
+    const c=document.getElementById("ap-count");
+    if(c) c.textContent="Showing "+shown+" of "+this.aps.length+" APs · "+this.selected.size+" selected";
+  },
+
+  applyClientFilter(){
+    const inp=document.getElementById("client-search");
+    const term=(inp?inp.value:"").trim().toLowerCase();
+    let shown=0;
+    document.querySelectorAll("#client-list .crow").forEach(r=>{
+      const m=!term||(r.dataset.search||"").indexOf(term)!==-1;
+      r.style.display=m?"":"none"; if(m) shown++;
+    });
+    const c=document.getElementById("cl-count");
+    if(c) c.textContent="Showing "+shown+" of "+this.clients.length+" devices";
+  },
+
+  async loadClients(){
+    const step2=document.getElementById("val-step2");
+    const box=document.getElementById("client-list");
+    const cnt=document.getElementById("val-client-count");
+    if(!this.selected.size){ if(step2) step2.style.display="none"; this.clients=[]; if(box) box.innerHTML=""; return; }
+    if(step2) step2.style.display="";
+    if(box) box.innerHTML='<div class="empty-state">Loading client devices…</div>';
+    try{
+      const macs=[...this.selected].join(",");
+      const d=await (await fetch("/api/validation/clients?aps="+encodeURIComponent(macs))).json();
+      this.clients=d.clients||[];
+      if(d.session && d.session.clients) this.clientState=Object.assign({},d.session.clients,this.clientState);
+    }catch(e){ if(box) box.innerHTML='<div class="empty-state">Kismet unavailable.</div>'; return; }
+    if(cnt) cnt.textContent="("+this.clients.length+" associated)";
+    this.renderClients();
+  },
+
+  renderClients(){
+    const box=document.getElementById("client-list"); if(!box) return;
+    if(!this.clients.length){ box.innerHTML='<div class="empty-state">No client devices associated with the selected APs.</div>'; return; }
+    const opts=(cur)=>Object.keys(VAL_STATUS).map(k=>'<option value="'+k+'"'+(k===cur?" selected":"")+">"+VAL_STATUS[k]+"</option>").join("");
+    const rows=this.clients.map(c=>{
+      const st=(this.clientState[c.mac.toUpperCase()]||{}).status||"UNVERIFIED";
+      const notes=(this.clientState[c.mac.toUpperCase()]||{}).notes||"";
+      const search=esc(((c.mac||"")+" "+(c.vendor||"")+" "+(c.device_type||"")).toLowerCase());
+      return '<tr class="crow st-'+st.toLowerCase()+'" data-mac="'+c.mac.toUpperCase()+'" data-search="'+search+'">'+
+        '<td class="c-shield">'+(st==="VERIFIED"?"🛡":"")+"</td>"+
+        '<td><input type="checkbox" class="c-cb"'+(st==="VERIFIED"?" checked":"")+"></td>"+
+        '<td class="c-mac">'+esc(c.mac)+"</td>"+
+        "<td>"+esc(c.vendor||"—")+"</td>"+
+        "<td>"+esc(c.device_type||"—")+"</td>"+
+        "<td>"+(c.rssi?c.rssi+" dBm":"—")+"</td>"+
+        "<td>"+fmtTime(c.first_seen)+"</td>"+
+        "<td>"+fmtTime(c.last_seen)+"</td>"+
+        '<td><select class="c-status">'+opts(st)+"</select></td>"+
+        '<td><input class="c-notes" placeholder="e.g. iPhone on kitchen counter" value="'+esc(notes)+'"></td>'+
+      "</tr>";
+    });
+    box.innerHTML='<table class="ctable"><thead><tr><th></th><th>✓</th><th>MAC</th><th>VENDOR</th>'+
+      "<th>OUI TYPE</th><th>SIGNAL</th><th>FIRST</th><th>LAST</th><th>STATUS</th><th>NOTES</th>"+
+      "</tr></thead><tbody>"+rows.join("")+"</tbody></table>";
+    this.applyClientFilter();
+  },
+
+  // persist selected APs
+  saveAps(){
+    this.applyApFilter();
+    clearTimeout(this._saveTimer);
+    this._saveTimer=setTimeout(()=>{
+      fetch("/api/validation/verify",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({selected_aps:[...this.selected]})}).catch(()=>{});
+    },300);
+  },
+
+  // persist a single client's status/notes
+  saveClient(mac){
+    mac=mac.toUpperCase();
+    const rec=this.rec(mac);
+    clearTimeout(this._saveTimer);
+    this._saveTimer=setTimeout(()=>{
+      fetch("/api/validation/verify",{method:"POST",headers:{"Content-Type":"application/json"},
+        body:JSON.stringify({mac:mac,status:rec.status,notes:rec.notes})}).catch(()=>{});
+    },300);
+  },
+
+  status(msg){ const el=document.getElementById("val-status"); if(el) el.textContent=msg; },
+
+  async enroll(){
+    this.status("◌ enrolling…");
+    try{
+      const d=await (await fetch("/api/validation/enroll",{method:"POST"})).json();
+      if(d.error){ this.status("✕ "+d.error); return; }
+      this.status("🛡 enrolled "+d.enrolled+" ("+d.verified_clients+" verified clients + "+d.access_points+" APs)");
+    }catch(e){ this.status("✕ enroll failed"); }
+  },
+
+  async report(){
+    this.status("◌ generating report…");
+    window.open("/api/validation/report","_blank");
+    setTimeout(()=>this.status("✓ report opened in new tab"),400);
+  },
+};
+
+Validation.ensure();
+</script>
+</body>
+</html>

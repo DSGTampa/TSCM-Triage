@@ -5,12 +5,26 @@ Surveillance Specialist Group, LLC
 Run: python3 ~/dsg-tscm/server.py
 Access: http://127.0.0.1:5555
 """
-import os, re, socket, subprocess, datetime, platform
-from flask import Flask, send_file, jsonify, request
+import os, re, sys, time, socket, subprocess, datetime, platform
+from flask import Flask, send_file, jsonify, request, Response
 
 app = Flask(__name__)
 BASE = os.path.dirname(os.path.abspath(__file__))
 RUN_LOG = os.path.expanduser('~/DSG-TSCM/run_log.txt')
+
+# ── Network Validation (Kismet) engine wiring ──────────────────────────────
+# The engines package + baseline/session state live alongside server.py so the
+# app is self-contained wherever it is deployed (git checkout or runtime dir).
+sys.path.insert(0, BASE)
+DATA_DIR = os.path.join(BASE, 'data')
+REPORTS_DIR = os.path.join(BASE, 'reports')
+BASELINE_PATH = os.path.join(DATA_DIR, 'baseline.json')
+SESSION_PATH = os.path.join(DATA_DIR, 'validation_session.json')
+
+from engines import kismet_db, net_validation, baseline_mgr
+
+_baseline = baseline_mgr.BaselineManager(BASELINE_PATH)
+_session = net_validation.ValidationSession(SESSION_PATH)
 
 # Where case output is written. Defaults to ~/DSG-TSCM/cases, but can be
 # redirected to an external drive (e.g. a USB stick on a Raspberry Pi) by
@@ -171,6 +185,107 @@ def local_ip():
         return jsonify({'local_ip': ip})
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+# ── NETWORK VALIDATION ─────────────────────────────────────────────────────
+@app.route('/validation')
+def validation_page():
+    return send_file(os.path.join(BASE, 'validation.html'))
+
+
+@app.route('/api/validation/aps')
+def api_validation_aps():
+    """Wi-Fi access points for Step 1, plus the saved session for resume."""
+    db = kismet_db.open_db()
+    session = _session.load()
+    if db is None or not db.is_available():
+        return jsonify({'aps': [], 'session': session,
+                        'kismet_connected': False,
+                        'error': 'kismet_disconnected'})
+    return jsonify({'aps': net_validation.list_aps(db),
+                    'session': session, 'kismet_connected': True})
+
+
+@app.route('/api/validation/clients')
+def api_validation_clients():
+    """Client devices associated with the selected APs (Step 2)."""
+    db = kismet_db.open_db()
+    session = _session.load()
+    if db is None or not db.is_available():
+        return jsonify({'clients': [], 'session': session,
+                        'kismet_connected': False,
+                        'error': 'kismet_disconnected'})
+    ap_macs = [m for m in request.args.get('aps', '').split(',') if m]
+    clients = net_validation.list_clients(db, ap_macs)
+    return jsonify({'clients': clients, 'session': session,
+                    'kismet_connected': True})
+
+
+@app.route('/api/validation/verify', methods=['POST'])
+def api_validation_verify():
+    """Persist the examiner's checklist so the session can be resumed.
+
+    Accepts either a single-device update ({mac, status, notes}) or an
+    access-point selection update ({selected_aps: [...]}); both merge into
+    data/validation_session.json.
+    """
+    body = request.get_json(silent=True) or {}
+    if 'selected_aps' in body:
+        data = _session.set_aps(body.get('selected_aps') or [])
+    elif body.get('mac'):
+        data = _session.set_client(body['mac'],
+                                   status=body.get('status'),
+                                   notes=body.get('notes'))
+    else:
+        return jsonify({'error': 'nothing to update'}), 400
+    return jsonify({'ok': True, 'session': data})
+
+
+@app.route('/api/validation/enroll', methods=['POST'])
+def api_validation_enroll():
+    """Enroll every VERIFIED client plus the selected APs into the baseline."""
+    session = _session.load()
+    verified = [mac for mac, rec in session.get('clients', {}).items()
+                if (rec or {}).get('status') == net_validation.STATUS_VERIFIED]
+    aps = session.get('selected_aps', [])
+    entries = ([{'mac': m, 'category': 'VERIFIED'} for m in verified] +
+               [{'mac': m, 'category': 'WIFI_AP'} for m in aps
+                if m.upper() not in {v.upper() for v in verified}])
+    n = _baseline.add_many(entries) if entries else 0
+    return jsonify({'enrolled': n, 'verified_clients': len(verified),
+                    'access_points': len(aps),
+                    'summary': _baseline.get_summary()})
+
+
+@app.route('/api/validation/report')
+def api_validation_report():
+    """Render the network validation sweep to a printable HTML report.
+
+    Returned inline (text/html) so the browser opens it directly for print;
+    a timestamped copy is also saved under reports/ for the case file.
+    """
+    db = kismet_db.open_db()
+    session = _session.load()
+    ap_macs = session.get('selected_aps', [])
+    all_aps = net_validation.list_aps(db)
+    ap_set = {m.upper() for m in ap_macs}
+    aps = [a for a in all_aps if a['mac'].upper() in ap_set]
+    clients = net_validation.list_clients(db, ap_macs)
+
+    capture = kismet_db.resolve_db_path()
+    meta = {'generated_ts': int(time.time()),
+            'capture': os.path.basename(capture) if capture else None}
+    html_doc = net_validation.render_validation_report(aps, clients, session, meta)
+
+    try:
+        os.makedirs(REPORTS_DIR, exist_ok=True)
+        fname = 'network-validation-{}.html'.format(time.strftime('%Y%m%d-%H%M%S'))
+        with open(os.path.join(REPORTS_DIR, fname), 'w') as f:
+            f.write(html_doc)
+    except OSError:
+        pass  # a save failure must not stop the examiner viewing the report
+
+    return Response(html_doc, mimetype='text/html')
+
 
 if __name__ == '__main__':
     print('\n  DSG TSCM Triage v1.8.2 — Flask Server')

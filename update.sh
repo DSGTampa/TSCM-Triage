@@ -27,12 +27,19 @@ mkdir -p "$INSTALL_DIR"
 
 # 3. Deploy app files
 echo -e "${WHITE}[2/4]${NC} Deploying files to ${INSTALL_DIR}..."
-for f in dsg_tscm_triage.html server.py analyze_capture.sh launch.sh launch_server.sh; do
+for f in dsg_tscm_triage.html validation.html server.py analyze_capture.sh launch.sh launch_server.sh; do
   if [ -f "$SRC_DIR/$f" ]; then
     cp "$SRC_DIR/$f" "$INSTALL_DIR/$f"
     echo -e "   ${GREEN}✓${NC} $f"
   fi
 done
+# Network Validation engines package + runtime data/reports dirs
+if [ -d "$SRC_DIR/engines" ]; then
+  mkdir -p "$INSTALL_DIR/engines"
+  cp "$SRC_DIR"/engines/*.py "$INSTALL_DIR/engines/" 2>/dev/null || true
+  echo -e "   ${GREEN}✓${NC} engines/"
+fi
+mkdir -p "$INSTALL_DIR/data" "$INSTALL_DIR/reports"
 chmod +x "$INSTALL_DIR"/*.sh "$INSTALL_DIR/server.py" 2>/dev/null || true
 
 # 4. Restart the Flask server only if it was already running
