@@ -21,7 +21,7 @@ REPORTS_DIR = os.path.join(BASE, 'reports')
 BASELINE_PATH = os.path.join(DATA_DIR, 'baseline.json')
 SESSION_PATH = os.path.join(DATA_DIR, 'validation_session.json')
 
-from engines import kismet_db, net_validation, baseline_mgr
+from engines import kismet_db, net_validation, baseline_mgr, validation_export
 
 _baseline = baseline_mgr.BaselineManager(BASELINE_PATH)
 _session = net_validation.ValidationSession(SESSION_PATH)
@@ -307,6 +307,59 @@ def api_validation_report():
         pass  # a save failure must not stop the examiner viewing the report
 
     return Response(html_doc, mimetype='text/html')
+
+
+@app.route('/api/validation-report')
+def api_validation_report_export():
+    """Export the Network Validation sweep as pdf | txt | csv | html.
+
+    GET /api/validation-report?case={CASE_NUMBER}&examiner={NAME}&format=pdf|txt|csv|html
+
+    Every format carries the same SHA256 of the report content. A timestamped
+    copy is saved under {CASE_PATH}/reports/ (per-case if a case number is
+    given, else the app-level reports/ dir) so it lands in the case file.
+    """
+    fmt = (request.args.get('format') or 'html').lower()
+    if fmt not in ('pdf', 'txt', 'csv', 'html'):
+        return jsonify({'error': "format must be one of pdf|txt|csv|html"}), 400
+    case = (request.args.get('case') or '').strip()
+    examiner = (request.args.get('examiner') or '').strip()
+
+    db = kismet_db.open_db()
+    session = _session.load()
+    baseline = _baseline.get_all()
+    capture = kismet_db.resolve_db_path()
+    model = validation_export.build_model(
+        db, session, baseline, case=case, examiner=examiner,
+        capture=os.path.basename(capture) if capture else None)
+
+    ts = time.strftime('%Y%m%d-%H%M%S')
+    fname = 'validation_report_{}.{}'.format(ts, fmt)
+
+    if fmt == 'txt':
+        payload, mime = validation_export.render_txt(model).encode('utf-8'), 'text/plain'
+    elif fmt == 'csv':
+        payload, mime = validation_export.render_csv(model).encode('utf-8'), 'text/csv'
+    elif fmt == 'html':
+        payload, mime = validation_export.render_html(model).encode('utf-8'), 'text/html'
+    else:  # pdf
+        pdf_bytes, err = validation_export.render_pdf(model)
+        if pdf_bytes is None:
+            return jsonify({'error': 'PDF export unavailable: %s' % err}), 501
+        payload, mime = pdf_bytes, 'application/pdf'
+
+    # Save a copy into the case's reports/ dir (best-effort — a save failure must
+    # not stop the examiner receiving the download).
+    reports_dir = (os.path.join(CASES_PATH, case, 'reports') if case else REPORTS_DIR)
+    try:
+        os.makedirs(reports_dir, exist_ok=True)
+        with open(os.path.join(reports_dir, fname), 'wb') as f:
+            f.write(payload)
+    except OSError:
+        pass
+
+    return Response(payload, mimetype=mime,
+                    headers={'Content-Disposition': 'attachment; filename="%s"' % fname})
 
 
 # ── SESSION SETUP (new location / resume) ──────────────────────────────────

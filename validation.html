@@ -78,6 +78,11 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 .crow.st-unresolved .c-mac{color:var(--red);}
 /* footer */
 .val-footer{display:flex;align-items:center;gap:12px;flex-wrap:wrap;padding-top:6px;}
+.report-bar{display:flex;align-items:center;gap:8px;flex-wrap:wrap;margin-top:10px;padding-top:10px;border-top:1px solid var(--border);}
+.report-bar .rep-in{height:36px;padding:0 11px;background:var(--bg);color:var(--body);border:1px solid var(--border);border-radius:4px;font-family:var(--mono);font-size:12px;outline:none;width:140px;}
+.report-bar .rep-in:focus{border-color:var(--cyan);}
+.report-bar .rep-in::placeholder{color:var(--dim);}
+.report-bar .rep-group{display:inline-flex;gap:6px;}
 .val-status{color:var(--dim);font-family:var(--mono);font-size:13px;}
 .legend{font-family:var(--mono);font-size:11px;color:var(--dim);margin-top:2px;}
 .legend .v{color:var(--blue);} .legend .u{color:var(--red);}
@@ -169,7 +174,17 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
     <div class="val-step">
       <div class="val-footer">
         <button class="btn green" id="val-enroll">🛡 ENROLL ALL VERIFIED DEVICES INTO BASELINE</button>
+      </div>
+      <div class="report-bar">
+        <input type="text" id="rep-case" class="rep-in" placeholder="Case #" autocomplete="off">
+        <input type="text" id="rep-examiner" class="rep-in" placeholder="Examiner" autocomplete="off">
         <button class="btn cyan" id="val-report">GENERATE REPORT</button>
+        <span class="rep-group">
+          <button class="btn" id="rep-pdf" title="Download PDF report">⬇ PDF</button>
+          <button class="btn" id="rep-txt" title="Download plain-text report">⬇ TXT</button>
+          <button class="btn" id="rep-csv" title="Download CSV report">⬇ CSV</button>
+          <button class="btn" id="rep-html" title="Download self-contained HTML report">⬇ HTML</button>
+        </span>
         <span class="val-status" id="val-status"></span>
       </div>
       <div class="legend">STATUS:&nbsp; <span class="v">🛡 VERIFIED — LOCATED</span> &nbsp;·&nbsp; <span class="u">UNRESOLVED — NOT FOUND</span> &nbsp;·&nbsp; UNVERIFIED (default)</div>
@@ -263,6 +278,10 @@ const Validation = {
     on("val-clear-all",()=>{ this.selected.clear(); this.renderAps(); this.saveAps(); this.loadClients(); });
     on("val-enroll",()=>this.enroll());
     on("val-report",()=>this.report());
+    on("rep-pdf",()=>this.exportReport("pdf"));
+    on("rep-txt",()=>this.exportReport("txt"));
+    on("rep-csv",()=>this.exportReport("csv"));
+    on("rep-html",()=>this.exportReport("html"));
     on("val-refresh",()=>this.refresh());
 
     const ai=document.getElementById("ap-search");
@@ -465,6 +484,32 @@ const Validation = {
     this.status("◌ generating report…");
     window.open("/api/validation/report","_blank");
     setTimeout(()=>this.status("✓ report opened in new tab"),400);
+  },
+
+  // Download one of the four export formats. The endpoint saves a timestamped
+  // copy under {CASE_PATH}/reports/ and returns the file as an attachment.
+  exportReport(fmt){
+    const val=(id)=>{ const e=document.getElementById(id); return e?e.value.trim():""; };
+    const q="format="+encodeURIComponent(fmt)
+      +"&case="+encodeURIComponent(val("rep-case"))
+      +"&examiner="+encodeURIComponent(val("rep-examiner"));
+    const url="/api/validation-report?"+q;
+    if(fmt==="pdf"){
+      // PDF may 501 if no engine is installed — check first so we can report it.
+      this.status("◌ building PDF…");
+      fetch(url).then(async r=>{
+        if(!r.ok){ let m="PDF export failed"; try{ m=(await r.json()).error||m; }catch(e){} this.status("✕ "+m); return; }
+        const blob=await r.blob();
+        const dl=document.createElement("a"); dl.href=URL.createObjectURL(blob);
+        dl.download="validation_report.pdf"; document.body.appendChild(dl); dl.click();
+        dl.remove(); URL.revokeObjectURL(dl.href);
+        this.status("⬇ PDF downloaded · saved to case reports/");
+      }).catch(()=>this.status("✕ PDF export failed"));
+      return;
+    }
+    const a=document.createElement("a"); a.href=url; a.download="";
+    document.body.appendChild(a); a.click(); a.remove();
+    this.status("⬇ "+fmt.toUpperCase()+" export requested · saved to case reports/");
   },
 };
 

@@ -47,7 +47,7 @@ sudo apt update
 # ============================================================
 echo ""
 echo -e "${CYAN}[2/11]${NC} Installing system prerequisites..."
-APT_PKGS="nmap arp-scan netdiscover aircrack-ng kismet tshark wireshark wireshark-common eyewitness docker.io hackrf soapysdr-tools rtl-sdr net-tools curl wget python3-pip"
+APT_PKGS="nmap arp-scan netdiscover aircrack-ng kismet tshark wireshark wireshark-common eyewitness docker.io hackrf soapysdr-tools rtl-sdr net-tools curl wget python3-pip wkhtmltopdf"
 # Preseed wireshark setuid answer so tshark install is non-interactive
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 if sudo DEBIAN_FRONTEND=noninteractive apt install -y $APT_PKGS; then
@@ -70,6 +70,10 @@ else
   PIP_CORE_STATUS="failed"
   echo -e "${RED}[!]${NC} Core Python packages failed to install"
 fi
+
+# weasyprint powers PDF export for the Network Validation report (wkhtmltopdf is
+# the fallback, installed via apt above). Non-fatal if it fails to build.
+pip install weasyprint --break-system-packages 2>/dev/null || true
 
 # ============================================================
 #  4. PIP PACKAGES (optional OSINT — may fail, that's OK)
