@@ -42,18 +42,32 @@ fi
 mkdir -p "$INSTALL_DIR/data" "$INSTALL_DIR/reports"
 chmod +x "$INSTALL_DIR"/*.sh "$INSTALL_DIR/server.py" 2>/dev/null || true
 
-# 4. Restart the Flask server only if it was already running
+# 4. Restart the Flask server only if it was already running.
+#    Launch it FULLY DETACHED: a new session (setsid) with stdin, stdout and
+#    stderr all redirected away from the caller. Detaching stdin is the crucial
+#    part — leaving it attached kept the caller's pipe open, so a wrapper like
+#    `bash update.sh | tee log` would hang forever waiting on EOF. server.py
+#    resolves its own paths from its file location, so no `cd` is needed.
 echo -e "${WHITE}[3/4]${NC} Checking Flask server..."
+SERVER_LOG="$INSTALL_DIR/server.log"
+start_server() {
+  if command -v setsid >/dev/null 2>&1; then
+    setsid python3 "$INSTALL_DIR/server.py" </dev/null >"$SERVER_LOG" 2>&1 &
+  else
+    nohup python3 "$INSTALL_DIR/server.py" </dev/null >"$SERVER_LOG" 2>&1 &
+  fi
+  disown 2>/dev/null || true
+}
 if pgrep -f "python3 .*server.py" >/dev/null 2>&1; then
   echo -e "   ${YELLOW}•${NC} Server running — restarting with new version"
   pkill -f "python3 .*server.py" 2>/dev/null
   sleep 1
-  ( cd "$INSTALL_DIR" && nohup python3 server.py >/dev/null 2>&1 & )
+  start_server
   sleep 1
   if pgrep -f "python3 .*server.py" >/dev/null 2>&1; then
-    echo -e "   ${GREEN}✓${NC} Server restarted at http://127.0.0.1:5555"
+    echo -e "   ${GREEN}✓${NC} Server restarted at http://127.0.0.1:5555  (log: ${SERVER_LOG})"
   else
-    echo -e "   ${RED}✗${NC} Server did not come back — start it with: bash ${INSTALL_DIR}/launch_server.sh"
+    echo -e "   ${RED}✗${NC} Server did not come back — see ${SERVER_LOG}, or start it with: bash ${INSTALL_DIR}/launch_server.sh"
   fi
 else
   echo -e "   ${YELLOW}•${NC} Server not running — launch when ready: bash ${INSTALL_DIR}/launch_server.sh"
