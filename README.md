@@ -18,6 +18,7 @@ Each mode panel delivers a guided, copy-and-run workflow with commands pre-token
 | **WiFi** | 802.11 survey and capture, including hidden SSIDs (airodump-ng, kismet), with a passive-RF enumeration explainer and capture-timing guidance |
 | **Bluetooth** | Classic Bluetooth and BLE enumeration for covert audio bugs |
 | **Deauth Discovery** | Post-router-down device detection — surface covert devices that fall back to their own setup AP |
+| **Network Validation** | Two-step counter-surveillance sweep — reconcile every 2.4 GHz + 5 GHz Wi-Fi device on the client's own network against what the examiner can physically locate; enroll verified devices to a baseline and generate a signature-ready report (see [Network Validation](#network-validation)) |
 | **Network Cam** | Locate networked cameras by vendor MAC and RTSP/HTTP fingerprint |
 | **Hidden Cam** | Hunt for concealed cameras via RTSP stream discovery and brute |
 | **Network KVM** | Detect KVM-over-IP devices (keyboard/video/mouse switches with network access) — a significant covert remote-access risk — by vendor OUI and management-port fingerprint |
@@ -71,6 +72,44 @@ bash launch_server.sh --cases-path /media/usb/DSG-TSCM/cases
 
 When a non-default path is active, the interface shows an amber **Cases → …** notice so the examiner always knows where evidence is being written, and every `{CASE_PATH}` token resolves to that location.
 
+## Network Validation
+
+The **Network Validation** tool is a two-step counter-surveillance workflow that reconciles every Wi-Fi device on the client's own network against what the examiner can physically locate. It reads a Kismet capture file (`.kismet`) directly — no live Kismet API connection is required — and covers **both 2.4 GHz and 5 GHz**.
+
+Open it from the **🛡 NETWORK VALIDATION** button at the top of the mode list, or go straight to **http://127.0.0.1:5555/validation**.
+
+**Workflow**
+
+1. **Step 1 — Access Points:** tick the APs that belong to the client's own network (searchable by SSID / MAC / vendor).
+2. **Step 2 — Client devices:** for each client associated with the selected APs, set a status — **🛡 VERIFIED (located)** or **UNRESOLVED (not found)** — and add a note (e.g. "iPhone on kitchen counter"). Verified devices display in blue with a shield.
+3. **Enroll** all verified devices (plus the selected APs) into the baseline, then **Generate Report** for a printable, signature-ready HTML Network Validation report with a plain-English explanation of what "unresolved" means.
+
+Session progress is saved to `data/validation_session.json`, the enrolled baseline to `data/baseline.json`, and reports to `reports/` (all created on demand and git-ignored).
+
+### Pointing it at a capture
+
+The tool uses the **most recently modified** `.kismet` file it can find. By default — for the user account running the server — it searches:
+
+- `~/*.kismet`
+- `~/DSG-TSCM/cases/**/wireless/kismet/*.kismet` (where the WiFi panel writes captures)
+- `~/dsg-tscm/**/*.kismet` and the current working directory
+
+Override with environment variables:
+
+```bash
+KISMET_DB=/path/to/specific/capture.kismet bash launch_server.sh   # an exact file
+KISMET_GLOB='/media/usb/*.kismet' bash launch_server.sh            # a custom glob
+```
+
+### Capturing both bands (2.4 GHz + 5 GHz)
+
+If 5 GHz APs are missing from the list, it is almost always because they were never in the capture — a Kismet run started without an explicit channel list can end up hopping 2.4 GHz only. Start Kismet with the full dual-band channel list (the WiFi panel's Kismet command already includes this) on a **5 GHz-capable adapter in monitor mode**:
+
+```bash
+sudo kismet -c wlan1mon:channels="1,2,3,4,5,6,7,8,9,10,11,12,13,14,36,40,44,48,52,56,60,64,100,104,108,112,116,120,124,128,132,136,140,149,153,157,161,165" \
+  --log-prefix ~/DSG-TSCM/cases/<case>/wireless/kismet/Kismet
+```
+
 ## Updating
 
 New releases are published to this repository. To pull the latest changes onto your machine and redeploy them to the runtime location (`~/dsg-tscm`):
@@ -94,13 +133,20 @@ pkill -f "python3 server.py" 2>/dev/null       # stop the running server (if any
 bash ~/dsg-tscm/launch_server.sh               # relaunch with the new version
 ```
 
-After updating, hard-refresh the browser (**Ctrl+Shift+R**) so the new UI loads instead of a cached copy. You can confirm the running version in the badge at the top of the page and in the footer (currently **v1.8.3**).
+After updating, hard-refresh the browser (**Ctrl+Shift+R**) so the new UI loads instead of a cached copy. You can confirm the running version in the badge at the top of the page and in the footer (currently **v1.8.4c**).
 
 > **Tip:** run `git log --oneline -5` after pulling to see what changed in the latest releases.
 
 ## Changelog
 
-### v1.8.3 (current)
+### v1.8.4c (current)
+
+- **New — Network Validation tool** (`/validation`): two-step Kismet-backed AP/client sweep with VERIFIED/UNRESOLVED status and notes, baseline enrollment (`data/baseline.json`), resumable session state, and a printable signature-ready report. See [Network Validation](#network-validation).
+- **Fix — dual-band AP coverage**: the WiFi panel's Kismet and airodump commands now hop the full 2.4 GHz (1–14) + 5 GHz (36–165) channel list, so 5 GHz APs are no longer missed at capture time. The AP query itself applies no band or signal-strength filter.
+- **Portability**: the Kismet capture lookup is now username-agnostic (searches the current user's home and case tree, overridable via `KISMET_DB` / `KISMET_GLOB`); added `requirements.txt`.
+- **UI**: the console scales to the browser window size/resolution, and mode-button icons are larger for readability.
+
+### v1.8.3
 
 - **New — Network KVM panel** (Cameras): detects KVM-over-IP devices by vendor OUI (Aten, Raritan, Avocent, Belkin, Lantronix, Adder, Black Box, Rose) and scans KVM/VNC management ports, with a collapsible OUI reference and covert-access-risk guidance.
 - **New — Hacker Hunting section** with the **HACK HW** panel: pentest/covert-hardware OUI cross-reference, WiFi Pineapple detection (port 1471, SSID grep, default gateway), BLE FlipperZero scan, and rogue-AP/evil-twin detection via pre/post-deauth diff. Capture-dependent commands are guarded so a missing capture prints clear guidance instead of failing silently.
