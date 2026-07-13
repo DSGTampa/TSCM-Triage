@@ -101,6 +101,19 @@ else
   echo -e "${YELLOW}[!]${NC} wireshark-common not present — skipping capture permission fix"
 fi
 
+# Set capabilities so TSCM tools run without sudo
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/arp-scan 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/nmap 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/tcpdump 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/tshark 2>/dev/null || true
+
+# Add user to kismet group
+sudo usermod -aG kismet $USER 2>/dev/null || true
+
+# Sudoers rules for tools that genuinely require root (driver-level operations)
+echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover" | sudo tee /etc/sudoers.d/dsg-tscm
+sudo chmod 440 /etc/sudoers.d/dsg-tscm
+
 # ============================================================
 #  6. ARP-SCAN OUI/MAC VENDOR DATABASE
 # ============================================================

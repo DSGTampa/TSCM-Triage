@@ -42,6 +42,21 @@ fi
 mkdir -p "$INSTALL_DIR/data" "$INSTALL_DIR/reports"
 chmod +x "$INSTALL_DIR"/*.sh "$INSTALL_DIR/server.py" 2>/dev/null || true
 
+# 3b. Refresh tool permissions (capabilities + sudoers) on every update
+echo -e "${WHITE}[3b]${NC} Applying tool capabilities and sudoers rules..."
+# Set capabilities so TSCM tools run without sudo
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/arp-scan 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/nmap 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/tcpdump 2>/dev/null || true
+sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/tshark 2>/dev/null || true
+
+# Add user to kismet group
+sudo usermod -aG kismet $USER 2>/dev/null || true
+
+# Sudoers rules for tools that genuinely require root (driver-level operations)
+echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover" | sudo tee /etc/sudoers.d/dsg-tscm
+sudo chmod 440 /etc/sudoers.d/dsg-tscm
+
 # 4. Restart the Flask server only if it was already running.
 #    Launch it FULLY DETACHED: a new session (setsid) with stdin, stdout and
 #    stderr all redirected away from the caller. Detaching stdin is the crucial

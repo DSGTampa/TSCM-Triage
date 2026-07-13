@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>DSG TSCM Triage v1.8.4c</title>
+<title>DSG TSCM Triage v1.8.4e</title>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <style>
 @import url('https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Exo+2:wght@400;600;700&display=swap');
@@ -96,7 +96,7 @@ html,body{background:#040810;min-height:100vh;}
   <div style="font-size:25px;font-weight:700;letter-spacing:.16em;color:#d8eeff;margin-bottom:5px;">DSG <span style="color:#00c8d7;">TSCM</span> TRIAGE</div>
   <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;letter-spacing:.1em;margin-bottom:9px;">// Surveillance Specialist Group, LLC</div>
   <div style="display:flex;justify-content:center;align-items:center;gap:7px;">
-    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4c</span>
+    <span style="display:inline-block;background:#00c8d714;border:1px solid #00c8d740;color:#00c8d7;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">v1.8.4e</span>
     <span style="display:inline-block;background:#3ddc8414;border:1px solid #3ddc8440;color:#3ddc84;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;">dataspecialistgroup.com &nbsp;·&nbsp; (877) 787-7075</span>
     <button id="update-btn" onclick="runUpdate()" style="display:inline-flex;align-items:center;gap:6px;background:#0a0a0a;border:1px solid #00ff41;color:#00ff41;font-family:'Share Tech Mono',monospace;font-size:11px;padding:2px 11px;border-radius:12px;cursor:pointer;letter-spacing:.06em;"><span id="update-dot" style="display:inline-block;width:6px;height:6px;border-radius:50%;background:#00ff41;"></span>UPDATE</button>
   </div>
@@ -214,6 +214,7 @@ html,body{background:#040810;min-height:100vh;}
     <div style="margin-bottom:13px;">
       <div style="display:flex;align-items:center;gap:7px;margin-bottom:7px;"><span style="color:#00c8d7;font-size:12px;">⇌</span><span style="font-size:11px;font-weight:600;letter-spacing:.1em;color:#c8dff0;">WIRELESS</span><div class="sl"></div></div>
       <div style="display:flex;flex-wrap:wrap;gap:5px;">
+        <button class="mb" onclick="showInfo('monstart',this)"><span style="font-size:18.75px;">⏻</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">MONITOR START</span></button>
         <button class="mb" onclick="showInfo('wifi',this)"><span style="font-size:18.75px;">⌘</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">WIFI</span></button>
         <button class="mb" onclick="showInfo('bt',this)"><span style="font-size:18.75px;">⊗</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">BLUETOOTH</span></button>
         <button class="mb" onclick="showInfo('macreveal',this)"><span style="font-size:18.75px;">◈</span><span style="font-size:9px;font-weight:600;letter-spacing:.06em;">MAC REVEAL</span></button>
@@ -303,7 +304,7 @@ html,body{background:#040810;min-height:100vh;}
       </div>
     </div>
     <div class="cb" id="console" style="height:clamp(280px,calc(100vh - 560px),1000px);overflow-y:auto;padding:9px 13px;font-family:'Share Tech Mono',monospace;font-size:12px;line-height:1.85;background:#060b12;">
-      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4c — WAN INTELLIGENCE</span><br>
+      <span style="color:#162536;">// DSG TSCM TRIAGE v1.8.4e — WAN INTELLIGENCE</span><br>
       <span style="color:#162536;">// Fill case intake on the left then click BEGIN WAN INTAKE</span>
     </div>
     <div id="wc-row" style="display:none;padding:8px 11px;border-top:1px solid #14263a;display:flex;gap:6px;flex-wrap:wrap;background:#060b12;"></div>
@@ -322,11 +323,17 @@ html,body{background:#040810;min-height:100vh;}
 
 <!-- VERSION STRIP -->
 <div class="vs-bar" onclick="toggleVer()">
-  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4c &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
+  <span style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#1a3050;flex:1;">DSG TSCM TRIAGE v1.8.4e &nbsp;·&nbsp; Surveillance Specialist Group, LLC &nbsp;·&nbsp; FL PI LICENSE A3200144 &nbsp;·&nbsp; (877) 787-7075</span>
   <span class="vtog" id="vtog" style="font-family:'Share Tech Mono',monospace;font-size:10px;color:#2e5070;">▼ changelog</span>
 </div>
 <div class="vs-content" id="vs-content">
   <div style="padding:12px 16px;display:flex;gap:18px;flex-wrap:wrap;border-top:1px solid #14263a;">
+    <div style="min-width:200px;">
+      <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4e — July 2026</div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">MONITOR MODE STARTUP panel — first panel in Wireless section: airmon-ng check kill, monitor mode on wlan1, Kismet capture, and stop/restore steps</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Installer + update.sh grant file capabilities (arp-scan, nmap, tcpdump, tshark), add user to kismet group, and install NOPASSWD sudoers rules for airmon-ng / kismet / airodump-ng / netdiscover</span></div>
+      <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">Removed sudo from arp-scan / nmap / tcpdump / tshark commands — capabilities now handle raw socket access</span></div>
+    </div>
     <div style="min-width:200px;">
       <div style="font-family:'Share Tech Mono',monospace;font-size:12px;color:#00c8d7;margin-bottom:3px;">v1.8.4c — July 2026</div>
       <div style="display:flex;gap:5px;margin-bottom:3px;"><span style="color:#00c8d7;">›</span><span style="font-size:12px;color:#4a6e8a;line-height:1.5;">NETWORK VALIDATION tool — Kismet AP/client sweep, VERIFIED/UNRESOLVED checklist, baseline enroll + printable report</span></div>
@@ -431,12 +438,12 @@ const ID={
     {y:'cmd',x:'ip addr show {IFACE} | grep "inet "'},
     {y:'desc',x:'↳ Run this to find your actual subnet, then update the SUBNET field above'},
     {y:'blank'},
-    {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
+    {y:'desc',x:'↳ Raw socket access handled by file capabilities — no sudo required; vendor names resolve automatically'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep — creates folder then saves results'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sn -PR {SUBNET} -oA {CASE_PATH}/scans/ping_sweep'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sn -PR {SUBNET} -oA {CASE_PATH}/scans/ping_sweep'},
     {y:'desc',x:'↳ Ping sweep — creates folder then saves XML/nmap/grepable'},
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo timeout 60 netdiscover -P -i {IFACE} -r {SUBNET} | tee {CASE_PATH}/scans/netdiscover.txt'},
@@ -446,11 +453,11 @@ const ID={
     {y:'warn',x:'// ⚠ UPDATE SUBNET field before running — default may not match your network'},
     {y:'blank'},
     {y:'comment',x:'// FAST — whole subnet, surveillance ports only (run this first):'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -p 80,81,554,3702,8080,8443,8554,9000,34567,37777 --open {SUBNET} -oA {CASE_PATH}/scans/surv_ports'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sV -p 80,81,554,3702,8080,8443,8554,9000,34567,37777 --open {SUBNET} -oA {CASE_PATH}/scans/surv_ports'},
     {y:'desc',x:'↳ Creates folder and saves XML/nmap output'},
     {y:'blank'},
     {y:'warn',x:'// ⚠ FULL-PORT SCAN — ONE HOST AT A TIME ONLY (not the whole subnet):'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -sC -p- -T4 [TARGET_IP] -oA {CASE_PATH}/scans/fullport_[TARGET_IP]'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sV -sC -p- -T4 [TARGET_IP] -oA {CASE_PATH}/scans/fullport_[TARGET_IP]'},
     {y:'desc',x:'↳ Replace [TARGET_IP] with a single flagged IP — e.g. 192.168.8.163'},
     {y:'desc',x:'↳ Running -p- on an entire /24 takes hours — scan individual hosts only'},
     {y:'blank'},
@@ -463,23 +470,23 @@ const ID={
     {y:'desc',x:'Detects VLAN segmentation and 802.1Q tagged traffic. Identifies whether the network is segmented and if devices are crossing VLAN boundaries — a critical finding in corporate and facility sweeps.'},
     {y:'blank'},
     {y:'comment',x:'// 802.1Q TAG DETECTION:'},
-    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo tcpdump -i {IFACE} -nn 'ether[12:2] == 0x8100' -c 100 -w {CASE_PATH}/scans/vlan_tagged.pcap 2>&1 | tee {CASE_PATH}/scans/vlan_tagged.txt"},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && tcpdump -i {IFACE} -nn 'ether[12:2] == 0x8100' -c 100 -w {CASE_PATH}/scans/vlan_tagged.pcap 2>&1 | tee {CASE_PATH}/scans/vlan_tagged.txt"},
     {y:'desc',x:'↳ Captures up to 100 802.1Q tagged frames — saves pcap and log to case folder'},
     {y:'blank'},
     {y:'comment',x:'// VLAN HOP SCAN:'},
-    {y:'cmd',x:'sudo nmap --script=broadcast-listener -e {IFACE} -oA {CASE_PATH}/scans/vlan_scan 2>&1 | tee {CASE_PATH}/scans/vlan_discovery.txt'},
+    {y:'cmd',x:'nmap --script=broadcast-listener -e {IFACE} -oA {CASE_PATH}/scans/vlan_scan 2>&1 | tee {CASE_PATH}/scans/vlan_discovery.txt'},
     {y:'desc',x:'↳ Passively listens for broadcast traffic revealing additional VLANs'},
     {y:'blank'},
     {y:'comment',x:'// CDP/LLDP LISTENER (60 sec):'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "cdp or lldp" -T fields -e cdp.deviceid -e lldp.tlv.system.name -e lldp.tlv.system.desc 2>/dev/null | tee {CASE_PATH}/scans/cdp_lldp.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "cdp or lldp" -T fields -e cdp.deviceid -e lldp.tlv.system.name -e lldp.tlv.system.desc 2>/dev/null | tee {CASE_PATH}/scans/cdp_lldp.txt'},
     {y:'desc',x:'↳ Captures switch/infrastructure announcements revealing device IDs and VLAN config'},
     {y:'blank'},
     {y:'warn',x:'△ CDP and LLDP packets reveal network infrastructure device identities and VLAN configurations. Presence of 802.1Q tagged frames on an access port indicates VLAN hopping potential or misconfiguration.'},
   ]},
   oui:{t:'// OUI MAC FINGERPRINTING',lines:[
-    {y:'desc',x:'↳ sudo required for raw socket access — vendor names resolve automatically with sudo'},
+    {y:'desc',x:'↳ Raw socket access handled by file capabilities — no sudo required; vendor names resolve automatically'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt'},
     {y:'desc',x:'↳ ARP sweep with vendor resolution — creates folder and saves results'},
     {y:'blank'},
     {y:'warn',x:'★★ HIGH PRIORITY — DIY covert devices:'},
@@ -491,18 +498,18 @@ const ID={
     {y:'desc',x:'Dahua      90:02:A9 / E0:50:8B / 3C:EF:8C'},
     {y:'desc',x:'Wyze 2C:AA:8E  Ring B0:09:DA  Arlo 6C:56:97  Nest 18:B4:30'},
     {y:'blank'},
-    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/ {print $1, $2, $3}' | tee {CASE_PATH}/scans/oui_results.txt"},
+    {y:'cmd',x:"mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | awk '/([0-9a-f]{2}:){5}[0-9a-f]{2}/ {print $1, $2, $3}' | tee {CASE_PATH}/scans/oui_results.txt"},
     {y:'desc',x:'↳ Extracts IP, MAC, vendor — saves to case folder'},
   ]},
   onvif:{t:'// ONVIF / WS-DISCOVERY — CAMERA PROBE',lines:[
     {y:'warn',x:'// NOTE: broadcast-wsdiscovery does NOT exist in Nmap NSE — use these:'},
     {y:'blank'},
     {y:'comment',x:'// Option 1 — UDP port scan for ONVIF (port 3702):'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 3702 --open {SUBNET} -oA {CASE_PATH}/scans/onvif_udp'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sU -p 3702 --open {SUBNET} -oA {CASE_PATH}/scans/onvif_udp'},
     {y:'desc',x:'↳ Identifies hosts with ONVIF port open — saves results'},
     {y:'blank'},
     {y:'comment',x:'// Option 2 — SSDP multicast probe:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_devices'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_devices'},
     {y:'desc',x:'\u2193 UPnP/SSDP discovery — saves responding devices to case folder'},
     {y:'desc',x:'↳ Saves all SSDP-responding devices'},
     {y:'blank'},
@@ -514,7 +521,7 @@ const ID={
     {y:'blank'},
     {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && docker run --net=host ullaakut/cameradar -t {SUBNET} 2>&1 | tee {CASE_PATH}/scans/cameradar.txt'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV -p 80,8080,8443 --script http-title {SUBNET} -oA {CASE_PATH}/scans/http_titles'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sV -p 80,8080,8443 --script http-title {SUBNET} -oA {CASE_PATH}/scans/http_titles'},
   ]},
   traffic:{t:'// TRAFFIC ANALYSIS',lines:[
     {y:'warn',x:'// PREFLIGHT — fix tshark permissions (run once if you get Permission denied):'},
@@ -545,6 +552,28 @@ const ID={
     {y:'blank'},
     {y:'url',x:'https://networktotal.com'},
     {y:'desc',x:'↳ Upload baseline.pcap for Snort + Suricata IDS analysis'},
+  ]},
+  monstart:{t:'// MONITOR MODE STARTUP',lines:[
+    {y:'desc',x:'Prepares the wireless adapter for passive RF capture. Must be run before any wireless scan. Kills interfering processes, enables monitor mode on wlan1, and launches Kismet with the monitor interface as source.'},
+    {y:'blank'},
+    {y:'comment',x:'// KILL INTERFERING PROCESSES:'},
+    {y:'cmd',x:'sudo airmon-ng check kill'},
+    {y:'blank'},
+    {y:'comment',x:'// START MONITOR MODE:'},
+    {y:'cmd',x:'sudo airmon-ng start wlan1'},
+    {y:'blank'},
+    {y:'comment',x:'// START KISMET CAPTURE:'},
+    {y:'cmd',x:'sudo kismet -c wlan1mon --log-prefix {CASE_PATH}/wireless/kismet/Kismet &'},
+    {y:'blank'},
+    {y:'comment',x:'// STOP MONITOR MODE (run after sweep complete):'},
+    {y:'cmd',x:'sudo airmon-ng stop wlan1mon && sudo systemctl restart NetworkManager'},
+    {y:'blank'},
+    {y:'banner',h:'// STARTUP SEQUENCE — RUN IN ORDER',lines:[
+      {y:'desc',x:'Run these four commands in order at the start of every wireless sweep.'},
+      {y:'desc',x:'Kismet runs in background — allow 5-10 minutes of passive capture before proceeding to WIFI and BLUETOOTH panels.'},
+    ]},
+    {y:'warn',x:'△ airmon-ng check kill will disconnect active WiFi on this machine. Ensure you are connected via ethernet before running.'},
+    {y:'warn',x:'△ Run STOP MONITOR MODE when sweep is complete to restore normal wireless operation.'},
   ]},
   wifi:{t:'// WIFI ANALYSIS — wlan1 / wlan1mon',lines:[
     {y:'banner',h:'// PASSIVE RF ENUMERATION',lines:[
@@ -599,7 +628,7 @@ const ID={
     {y:'desc',x:'↳ Cross-references new MACs against known surveillance and covert device vendors'},
     {y:'blank'},
     {y:'warn',x:'// PHASE 6 — Scan for new APs on their own subnet:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sn 192.168.4.0/24 192.168.100.0/24 10.0.0.0/24 -oA {CASE_PATH}/scans/deauth_new_subnets'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sn 192.168.4.0/24 192.168.100.0/24 10.0.0.0/24 -oA {CASE_PATH}/scans/deauth_new_subnets'},
     {y:'desc',x:'↳ Cameras often use 192.168.4.x or 192.168.100.x for their own setup AP subnet'},
     {y:'blank'},
     {y:'warn',x:'// PHASE 7 — Auto-flag analysis:'},
@@ -632,23 +661,23 @@ const ID={
     {y:'comment',x:'// Randomized MACs appear in OUI scan as unresolved or flagged with the locally administered bit set (second nibble x2, x6, xA, or xE).'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 1 — RANDOMIZED MAC SCAN'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/wireless/arp_full.txt | awk \'{print $2}\' | while read mac; do second=$(echo $mac | cut -d: -f1 | tr a-f A-F); case ${second: -1} in 2|6|A|E) echo "RANDOMIZED: $mac";; esac; done | tee {CASE_PATH}/wireless/randomized_macs.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/wireless/arp_full.txt | awk \'{print $2}\' | while read mac; do second=$(echo $mac | cut -d: -f1 | tr a-f A-F); case ${second: -1} in 2|6|A|E) echo "RANDOMIZED: $mac";; esac; done | tee {CASE_PATH}/wireless/randomized_macs.txt'},
     {y:'desc',x:'↳ Identifies locally administered MACs on the wired network'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 2 — PROBE REQUEST CAPTURE (60 sec)'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && sudo tshark -i {WIFACE}mon -a duration:60 -Y "wlan.fc.type_subtype == 0x04" -T fields -e wlan.sa -e wlan.ssid -e wlan.seq 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/probe_requests.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/wireless && tshark -i {WIFACE}mon -a duration:60 -Y "wlan.fc.type_subtype == 0x04" -T fields -e wlan.sa -e wlan.ssid -e wlan.seq 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/probe_requests.txt'},
     {y:'desc',x:'↳ Captures 802.11 probe requests — devices frequently leak real MAC in directed probes before randomization applies'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 3 — DHCP HOSTNAME CORRELATION (60 sec)'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "bootp" -T fields -e eth.src -e bootp.option.hostname -e bootp.option.vendor_class_id 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/dhcp_hostname_correlation.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "bootp" -T fields -e eth.src -e bootp.option.hostname -e bootp.option.vendor_class_id 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/dhcp_hostname_correlation.txt'},
     {y:'desc',x:'↳ DHCP requests include device hostname — correlates randomized MAC to a real device identity'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 4 — mDNS MAC CORRELATION (60 sec)'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "mdns" -T fields -e eth.src -e dns.qry.name -e dns.resp.name 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/mdns_mac_correlation.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "mdns" -T fields -e eth.src -e dns.qry.name -e dns.resp.name 2>/dev/null | sort -u | tee {CASE_PATH}/wireless/mdns_mac_correlation.txt'},
     {y:'desc',x:'↳ mDNS announcements expose device names tied to MAC — cross-reference against randomized MAC list'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 5 — SEQUENCE NUMBER ANALYSIS (60 sec)'},
-    {y:'cmd',x:'sudo tshark -i {WIFACE}mon -a duration:60 -Y "wlan" -T fields -e wlan.sa -e wlan.seq 2>/dev/null | sort -k1,1 -k2,2n | tee {CASE_PATH}/wireless/sequence_correlation.txt'},
+    {y:'cmd',x:'tshark -i {WIFACE}mon -a duration:60 -Y "wlan" -T fields -e wlan.sa -e wlan.seq 2>/dev/null | sort -k1,1 -k2,2n | tee {CASE_PATH}/wireless/sequence_correlation.txt'},
     {y:'desc',x:'↳ 802.11 sequence numbers increment globally per device — correlates multiple randomized MACs that share a sequence counter to the same physical device'},
     {y:'blank'},
     {y:'comment',x:'// COMMAND 6 — FULL CORRELATION REPORT'},
@@ -714,7 +743,7 @@ const ID={
     {y:'desc',x:'↳ Any IP other than your known gateway responding on port 67 is rogue'},
     {y:'blank'},
     {y:'comment',x:'// Option 2 — nmap DHCP discovery:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 67 --script dhcp-discover {SUBNET} -oA {CASE_PATH}/scans/rogue_dhcp'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sU -p 67 --script dhcp-discover {SUBNET} -oA {CASE_PATH}/scans/rogue_dhcp'},
     {y:'desc',x:'↳ Sends DHCP discover and records all servers that respond'},
     {y:'blank'},
     {y:'warn',x:'Only one DHCP server should exist — your gateway/router'},
@@ -724,10 +753,10 @@ const ID={
     {y:'warn',x:'// Devices powered off during initial sweep appear on rescan — run twice with time gap'},
     {y:'blank'},
     {y:'comment',x:'// STEP 1 — baseline scan:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/baseline_devices.txt && echo "Baseline saved: $(wc -l < {CASE_PATH}/scans/baseline_devices.txt) hosts"'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/baseline_devices.txt && echo "Baseline saved: $(wc -l < {CASE_PATH}/scans/baseline_devices.txt) hosts"'},
     {y:'blank'},
     {y:'comment',x:'// STEP 2 — wait 15-60 minutes then rescan:'},
-    {y:'cmd',x:'sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/rescan_devices.txt && echo "Rescan saved: $(wc -l < {CASE_PATH}/scans/rescan_devices.txt) hosts"'},
+    {y:'cmd',x:'arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | sort > {CASE_PATH}/scans/rescan_devices.txt && echo "Rescan saved: $(wc -l < {CASE_PATH}/scans/rescan_devices.txt) hosts"'},
     {y:'blank'},
     {y:'comment',x:'// STEP 3 — diff to find new devices:'},
     {y:'cmd',x:"diff {CASE_PATH}/scans/baseline_devices.txt {CASE_PATH}/scans/rescan_devices.txt | grep '^>' | tee {CASE_PATH}/scans/new_devices.txt"},
@@ -745,12 +774,12 @@ const ID={
     {y:'desc',x:'↳ Lists all mDNS-advertised services — cameras show as _rtsp._tcp or _http._tcp'},
     {y:'blank'},
     {y:'comment',x:'// SSDP M-SEARCH multicast probe:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_all'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sU -p 1900 --script=upnp-info --open {SUBNET} -oA {CASE_PATH}/scans/ssdp_all'},
     {y:'desc',x:'\u2193 UPnP/SSDP discovery via nmap — saves all responding devices'},
     {y:'desc',x:'↳ All SSDP-responding devices reply — saves to case folder'},
     {y:'blank'},
     {y:'comment',x:'// nmap UPnP info:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sU -p 1900 --script upnp-info {SUBNET} -oA {CASE_PATH}/scans/upnp_info'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sU -p 1900 --script upnp-info {SUBNET} -oA {CASE_PATH}/scans/upnp_info'},
     {y:'desc',x:'↳ UPnP device descriptions often reveal manufacturer and model number'},
   ]},
   ent_cert:{t:'// ENT — SSL/TLS CERTIFICATE INSPECTION',lines:[
@@ -762,7 +791,7 @@ const ID={
     {y:'desc',x:'↳ Replace [TARGET_IP] with a flagged host IP — saves cert and cipher details'},
     {y:'blank'},
     {y:'comment',x:'// nmap ssl-cert script across subnet:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -p 443,8443,8080 --script ssl-cert {SUBNET} -oA {CASE_PATH}/scans/ssl_certs'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -p 443,8443,8080 --script ssl-cert {SUBNET} -oA {CASE_PATH}/scans/ssl_certs'},
     {y:'desc',x:'↳ Grabs all TLS certs — inspect Issuer and Subject for device fingerprints'},
     {y:'blank'},
     {y:'warn',x:'Flags to look for in cert output:'},
@@ -844,7 +873,7 @@ const ID={
   ]},
   netcam:{t:'// NETWORK CAMERA IDENTIFICATION',lines:[
     {y:'comment',x:'// STEP 1 — flag known camera OUIs in arp-scan output:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt | grep -iE "ring|arlo|wyze|blink|eufy|amcrest|reolink|foscam|nest|hikvision|dahua|axis|b0:09:da|6c:56:97|2c:aa:8e|f4:f2:28|d4:52:bf|9c:8e:cd|ec:71:db|18:b4:30|4c:11:bf|90:02:a9|00:40:8c" | tee {CASE_PATH}/scans/camera_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_scan.txt | grep -iE "ring|arlo|wyze|blink|eufy|amcrest|reolink|foscam|nest|hikvision|dahua|axis|b0:09:da|6c:56:97|2c:aa:8e|f4:f2:28|d4:52:bf|9c:8e:cd|ec:71:db|18:b4:30|4c:11:bf|90:02:a9|00:40:8c" | tee {CASE_PATH}/scans/camera_hits.txt'},
     {y:'desc',x:'↳ Flags known camera vendors in live scan — saves full results and flagged hits'},
     {y:'blank'},
     {y:'warn',x:'Known camera OUI prefixes:'},
@@ -936,11 +965,11 @@ const ID={
     {y:'desc',x:'These devices allow full desktop control from remote locations and may not appear in standard network inventories.'},
     {y:'blank'},
     {y:'comment',x:'// KVM OUI SCAN — flag known KVM-over-IP device OUIs in arp-scan output:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:10:74|00:0e:c6|00:e0:d8|00:0d:5d|00:60:48|00:e0:86|00:30:bd|00:11:50|00:20:4a|00:80:a3|00:22:c9|00:e0:7d|00:10:16" | tee {CASE_PATH}/scans/kvm_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:10:74|00:0e:c6|00:e0:d8|00:0d:5d|00:60:48|00:e0:86|00:30:bd|00:11:50|00:20:4a|00:80:a3|00:22:c9|00:e0:7d|00:10:16" | tee {CASE_PATH}/scans/kvm_hits.txt'},
     {y:'desc',x:'↳ Flags known KVM vendor OUIs in live scan — saves full results and flagged hits'},
     {y:'blank'},
     {y:'comment',x:'// KVM PORT SCAN — probe KVM management ports:'},
-    {y:'cmd',x:'sudo nmap -sV -p 80,443,902,5900,5901,8080,8443,7900,2068,3000 {SUBNET} -oA {CASE_PATH}/scans/kvm_portscan'},
+    {y:'cmd',x:'nmap -sV -p 80,443,902,5900,5901,8080,8443,7900,2068,3000 {SUBNET} -oA {CASE_PATH}/scans/kvm_portscan'},
     {y:'desc',x:'↳ Fingerprints KVM management/VNC ports across the subnet — saves results'},
     {y:'blank'},
     {y:'warn',x:'△ KVM devices may report under NIC manufacturer OUIs (Intel, Realtek) rather than the KVM vendor. A port scan hit on 5900 (VNC), 902 (VMware), or 2068 (Raritan) without a corresponding workstation is a strong indicator.'},
@@ -960,7 +989,7 @@ const ID={
     {y:'desc',x:'Detects always-on microphone devices including smart speakers and voice assistants. These devices continuously monitor audio and represent a significant privacy risk in any sensitive environment.'},
     {y:'blank'},
     {y:'comment',x:'// VOICE ASSISTANT OUI SCAN:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "fc:65:de|44:65:0d|f0:81:73|00:fc:8b|ac:63:be|74:75:48|54:60:09|f4:f5:d8|48:d6:d5|20:df:b9|a4:77:33|98:9e:63|dc:2c:6e|8c:85:90|00:0e:58|5c:aa:fd|94:9f:3e|50:dc:e7|b4:7c:9c|cc:f4:11|68:37:e9|4c:ef:c0" | tee {CASE_PATH}/scans/voice_assistant_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "fc:65:de|44:65:0d|f0:81:73|00:fc:8b|ac:63:be|74:75:48|54:60:09|f4:f5:d8|48:d6:d5|20:df:b9|a4:77:33|98:9e:63|dc:2c:6e|8c:85:90|00:0e:58|5c:aa:fd|94:9f:3e|50:dc:e7|b4:7c:9c|cc:f4:11|68:37:e9|4c:ef:c0" | tee {CASE_PATH}/scans/voice_assistant_hits.txt'},
     {y:'desc',x:'↳ Flags known voice-assistant vendor OUIs in live scan — saves full results and hits'},
     {y:'blank'},
     {y:'comment',x:'// mDNS VOICE ASSISTANT DISCOVERY:'},
@@ -980,11 +1009,11 @@ const ID={
     {y:'desc',x:'Detects network-connected televisions and displays with cameras, microphones, and ACR (Automatic Content Recognition) telemetry. Smart TVs exfiltrate viewing data and may have always-on cameras and microphones.'},
     {y:'blank'},
     {y:'comment',x:'// SMART TV OUI SCAN:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:07:ab|00:12:fb|00:15:99|8c:77:12|bc:14:85|cc:05:1b|00:1e:75|00:22:a9|58:a2:b5|a8:23:fe|c4:36:6c|00:01:4a|00:13:a9|ac:9b:0a|f0:bf:97|00:09:bf|b8:3e:59|cc:6d:a0|d8:31:cf|08:05:81|00:19:c0|00:1f:eb|c4:65:16|50:d4:f7" | tee {CASE_PATH}/scans/smarttv_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "00:07:ab|00:12:fb|00:15:99|8c:77:12|bc:14:85|cc:05:1b|00:1e:75|00:22:a9|58:a2:b5|a8:23:fe|c4:36:6c|00:01:4a|00:13:a9|ac:9b:0a|f0:bf:97|00:09:bf|b8:3e:59|cc:6d:a0|d8:31:cf|08:05:81|00:19:c0|00:1f:eb|c4:65:16|50:d4:f7" | tee {CASE_PATH}/scans/smarttv_hits.txt'},
     {y:'desc',x:'↳ Flags known smart-TV vendor OUIs in live scan — saves full results and hits'},
     {y:'blank'},
     {y:'comment',x:'// SMART TV PORT SCAN:'},
-    {y:'cmd',x:'sudo nmap -sV -p 80,443,1925,4352,7000,7100,8001,8008,8009,8080,9080 --open {SUBNET} -oA {CASE_PATH}/scans/smarttv_portscan'},
+    {y:'cmd',x:'nmap -sV -p 80,443,1925,4352,7000,7100,8001,8008,8009,8080,9080 --open {SUBNET} -oA {CASE_PATH}/scans/smarttv_portscan'},
     {y:'desc',x:'↳ Fingerprints smart-TV control/cast ports across the subnet — saves results'},
     {y:'blank'},
     {y:'comment',x:'// mDNS TV DISCOVERY:'},
@@ -1007,7 +1036,7 @@ const ID={
     {y:'warn',x:'// Finding a device OUI does not prove malicious intent — it documents presence for further investigation'},
     {y:'blank'},
     {y:'comment',x:'// STEP 1 — OUI cross-reference for known pentest and covert hardware:'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|00:13:37|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && arp-scan --localnet --interface={IFACE} --ignoredups --ouifile=/usr/share/arp-scan/ieee-oui.txt --macfile=/usr/share/arp-scan/mac-vendor.txt | tee {CASE_PATH}/scans/arp_full.txt | grep -iE "b8:27:eb|dc:a6:32|e4:5f:01|d8:3a:dd|2c:cf:67|dc:4f:22|e8:db:84|cc:50:e3|24:0a:c4|a4:cf:12|30:ae:a4|00:c0:ca|94:83:c4|b4:fb:e4|00:0c:e7|00:13:37|80:e1:26|00:21:86" | tee {CASE_PATH}/scans/hackhw_hits.txt'},
     {y:'desc',x:'↳ Flags known pentest and covert device OUIs — saves all results and hits separately'},
     {y:'blank'},
     {y:'desc',x:'Raspberry Pi    B8:27:EB / DC:A6:32 / E4:5F:01 / D8:3A:DD / 2C:CF:67'},
@@ -1042,11 +1071,11 @@ const ID={
     {y:'desc',x:'↳ Diffs DEAUTH pre vs post captures for APs not present before — requires DEAUTH DISC pre + post captures first'},
     {y:'blank'},
     {y:'comment',x:'// STEP 7 — HAK5 CLOUD C2 DNS CHECK — detect devices phoning home to Cloud C2:'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "dns.qry.name contains \\"hak5.org\\"" 2>/dev/null | tee {CASE_PATH}/scans/hak5_c2_dns.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "dns.qry.name contains \\"hak5.org\\"" 2>/dev/null | tee {CASE_PATH}/scans/hak5_c2_dns.txt'},
     {y:'desc',x:'↳ Detects Hak5 devices phoning home to Cloud C2 — catches USB-only implants with no ARP presence'},
     {y:'blank'},
     {y:'comment',x:'// STEP 8 — HAK5 PORT SCAN — Hak5 management interfaces and default subnets:'},
-    {y:'cmd',x:'sudo nmap -sV -p 22,80,443,1471 --open {SUBNET} -oA {CASE_PATH}/scans/hak5_portscan && sudo nmap -sV -p 22,80,443,1471 --open 172.16.42.0/24 -oA {CASE_PATH}/scans/hak5_pineapple_subnet'},
+    {y:'cmd',x:'nmap -sV -p 22,80,443,1471 --open {SUBNET} -oA {CASE_PATH}/scans/hak5_portscan && nmap -sV -p 22,80,443,1471 --open 172.16.42.0/24 -oA {CASE_PATH}/scans/hak5_pineapple_subnet'},
     {y:'desc',x:'↳ Scans for Hak5 management interfaces and the Pineapple default 172.16.42.0/24 subnet'},
     {y:'blank'},
     {y:'warn',x:'△ Hak5 OUI 00:13:37 covers Packet Squirrel, Shark Jack, LAN Turtle, and Signal Owl. Screen Crab and Key Croc are USB-only — detect via Cloud C2 DNS check above. Port 1471 is WiFi Pineapple management.'},
@@ -1057,11 +1086,11 @@ const ID={
     {y:'desc',x:'Detects unauthorized DHCP servers that may be redirecting network traffic. A rogue DHCP server is a strong indicator of active network manipulation.'},
     {y:'blank'},
     {y:'comment',x:'// DHCP DISCOVER SCAN:'},
-    {y:'cmd',x:'sudo nmap --script broadcast-dhcp-discover -e {IFACE} 2>&1 | tee {CASE_PATH}/scans/rogue_dhcp.txt'},
+    {y:'cmd',x:'nmap --script broadcast-dhcp-discover -e {IFACE} 2>&1 | tee {CASE_PATH}/scans/rogue_dhcp.txt'},
     {y:'desc',x:'↳ Broadcasts a DHCP discover and records every server that responds'},
     {y:'blank'},
     {y:'comment',x:'// DHCP SERVER MONITOR (60 sec):'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "bootp.type == 2" -T fields -e ip.src -e bootp.server -e bootp.option.dhcp_server_id 2>/dev/null | tee {CASE_PATH}/scans/dhcp_servers.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "bootp.type == 2" -T fields -e ip.src -e bootp.server -e bootp.option.dhcp_server_id 2>/dev/null | tee {CASE_PATH}/scans/dhcp_servers.txt'},
     {y:'desc',x:'↳ Passively logs all DHCP server replies seen on the wire for 60 seconds'},
     {y:'blank'},
     {y:'warn',x:'△ More than one DHCP server on a network is a critical finding. The legitimate server is typically the router IP. Any additional server warrants immediate investigation.'},
@@ -1074,11 +1103,11 @@ const ID={
     {y:'desc',x:'↳ Captures the current MAC/IP bindings — compare against later snapshots'},
     {y:'blank'},
     {y:'comment',x:'// ARP SPOOF MONITOR (60 sec):'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "arp.duplicate-address-detected or arp.packet-storm-detected" 2>/dev/null | tee {CASE_PATH}/scans/arp_poison.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "arp.duplicate-address-detected or arp.packet-storm-detected" 2>/dev/null | tee {CASE_PATH}/scans/arp_poison.txt'},
     {y:'desc',x:'↳ Flags duplicate-address and packet-storm conditions typical of ARP poisoning'},
     {y:'blank'},
     {y:'comment',x:'// GRATUITOUS ARP WATCH:'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "arp.opcode == 2 and arp.src.proto_ipv4 == arp.dst.proto_ipv4" -T fields -e arp.src.hw_mac -e arp.src.proto_ipv4 2>/dev/null | tee {CASE_PATH}/scans/gratuitous_arp.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "arp.opcode == 2 and arp.src.proto_ipv4 == arp.dst.proto_ipv4" -T fields -e arp.src.hw_mac -e arp.src.proto_ipv4 2>/dev/null | tee {CASE_PATH}/scans/gratuitous_arp.txt'},
     {y:'desc',x:'↳ Records gratuitous ARP replies — announcing a MAC change for a known IP'},
     {y:'blank'},
     {y:'warn',x:'△ Gratuitous ARP replies announcing a MAC change for a known IP — especially for the gateway — indicate active ARP poisoning.'},
@@ -1087,7 +1116,7 @@ const ID={
     {y:'desc',x:'Identifies devices performing TLS inspection or man-in-the-middle on encrypted traffic. Common in corporate surveillance hardware and rogue APs.'},
     {y:'blank'},
     {y:'comment',x:'// CERTIFICATE CHAIN SCAN:'},
-    {y:'cmd',x:'sudo nmap --script ssl-cert -p 443 {SUBNET} -oA {CASE_PATH}/scans/ssl_certs 2>&1 | tee {CASE_PATH}/scans/ssl_cert_scan.txt'},
+    {y:'cmd',x:'nmap --script ssl-cert -p 443 {SUBNET} -oA {CASE_PATH}/scans/ssl_certs 2>&1 | tee {CASE_PATH}/scans/ssl_cert_scan.txt'},
     {y:'desc',x:'↳ Grabs TLS certs across the subnet — inspect Issuer for unexpected inline CAs'},
     {y:'blank'},
     {y:'comment',x:'// TLS INSPECTION CHECK (gateway):'},
@@ -1100,15 +1129,15 @@ const ID={
     {y:'desc',x:'Detects covert data exfiltration via DNS queries. High query volume, long subdomains, or TXT record abuse are key indicators.'},
     {y:'blank'},
     {y:'comment',x:'// DNS QUERY MONITOR (120 sec):'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:120 -Y "dns" -T fields -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -rn | head -50 | tee {CASE_PATH}/scans/dns_queries.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:120 -Y "dns" -T fields -e dns.qry.name 2>/dev/null | sort | uniq -c | sort -rn | head -50 | tee {CASE_PATH}/scans/dns_queries.txt'},
     {y:'desc',x:'↳ Ranks DNS queries by volume — a single domain dominating is a tunneling indicator'},
     {y:'blank'},
     {y:'comment',x:'// LONG SUBDOMAIN DETECTION:'},
-    {y:'cmd',x:"sudo tshark -i {IFACE} -a duration:60 -Y \"dns\" -T fields -e dns.qry.name 2>/dev/null | awk 'length($0) > 50' | sort -u | tee {CASE_PATH}/scans/dns_long_subdomains.txt"},
+    {y:'cmd',x:"tshark -i {IFACE} -a duration:60 -Y \"dns\" -T fields -e dns.qry.name 2>/dev/null | awk 'length($0) > 50' | sort -u | tee {CASE_PATH}/scans/dns_long_subdomains.txt"},
     {y:'desc',x:'↳ Isolates queries over 50 chars — encoded exfil payloads hide in long subdomains'},
     {y:'blank'},
     {y:'comment',x:'// DNS TXT RECORD MONITOR:'},
-    {y:'cmd',x:'sudo tshark -i {IFACE} -a duration:60 -Y "dns.qry.type == 16" -T fields -e dns.qry.name 2>/dev/null | tee {CASE_PATH}/scans/dns_txt_queries.txt'},
+    {y:'cmd',x:'tshark -i {IFACE} -a duration:60 -Y "dns.qry.type == 16" -T fields -e dns.qry.name 2>/dev/null | tee {CASE_PATH}/scans/dns_txt_queries.txt'},
     {y:'desc',x:'↳ Captures TXT record lookups — frequently abused for tunneling and C2'},
     {y:'blank'},
     {y:'warn',x:'△ DNS tunneling indicators: queries longer than 50 chars, high volume to a single domain, frequent TXT record lookups, or encoded-looking subdomains (base64/hex patterns). Common tools: iodine, dnscat2.'},
@@ -1138,7 +1167,7 @@ const ID={
     {y:'url',x:'https://grc.com/shieldsup'},
     {y:'desc',x:'↳ External port exposure test'},
     {y:'blank'},
-    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && sudo nmap -sV --script shodan-api --script-args shodan-api.apikey=[KEY] {SUBNET} -oA {CASE_PATH}/scans/shodan_nmap'},
+    {y:'cmd',x:'mkdir -p {CASE_PATH}/scans && nmap -sV --script shodan-api --script-args shodan-api.apikey=[KEY] {SUBNET} -oA {CASE_PATH}/scans/shodan_nmap'},
     {y:'desc',x:'↳ Shodan integration in nmap (requires free API key)'},
   ]},
   threat:{t:'// THREAT INTELLIGENCE',lines:[
@@ -1391,7 +1420,7 @@ function gF(){return{examiner:document.getElementById('f-examiner').value,licens
 
 function downloadTxt(){
   const f=gF(),ts=new Date().toLocaleString('en-US');
-  let txt='DSG TSCM TRIAGE v1.8.4c — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
+  let txt='DSG TSCM TRIAGE v1.8.4e — SCAN REPORT\nSurveillance Specialist Group, LLC\n'+'='.repeat(56)+'\n';
   if(f.examiner)txt+='Examiner  : '+f.examiner+(f.license?' ('+f.license+')\n':'\n');
   if(f.client)txt+='Client    : '+f.client+'\n';
   if(f.caseNum)txt+='Case No   : '+f.caseNum+'\n';
@@ -1414,7 +1443,7 @@ function exportPDF(){
   doc.setFillColor(7,12,20);doc.rect(0,0,pw,ph,'F');
   doc.setFillColor(0,200,215);doc.rect(0,0,pw,2,'F');
   doc.setFillColor(14,24,34);doc.roundedRect(mg,y,cw,26,2,2,'F');
-  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4c',pw/2,y+9,{align:'center'});
+  doc.setTextColor(0,200,215);doc.setFontSize(15);doc.setFont('helvetica','bold');doc.text('DSG TSCM TRIAGE v1.8.4e',pw/2,y+9,{align:'center'});
   doc.setFontSize(8);doc.setFont('helvetica','normal');doc.text('SURVEILLANCE SPECIALIST GROUP, LLC  ·  DATA SPECIALIST GROUP',pw/2,y+16,{align:'center'});
   doc.setTextColor(74,110,138);doc.text('TSCM NETWORK INTAKE EXAMINATION REPORT',pw/2,y+22,{align:'center'});y+=32;
   doc.setFillColor(10,21,32);doc.roundedRect(mg,y,cw,52,2,2,'F');doc.setDrawColor(22,37,54);doc.roundedRect(mg,y,cw,52,2,2,'S');
@@ -1503,7 +1532,7 @@ async function runScan(){
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('  SURVEILLANCE SPECIALIST GROUP, LLC','header');
   addLine('  d/b/a DATA SPECIALIST GROUP','header');
-  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4c','header');
+  addLine('  TSCM INTAKE — WAN INTELLIGENCE v1.8.4e','header');
   addLine('═══════════════════════════════════════════════════════','divider');
   addLine('');
   addLine('Timestamp : '+ts,'meta');
