@@ -1531,11 +1531,37 @@ async function runUpdate() {
             btn.classList.remove('updating');
         }
     } catch (err) {
-        output.innerHTML = '<span class="red">// △ CONNECTION ERROR</span>\n' + err.message;
-        btn.textContent = 'UPDATE';
-        btn.disabled = false;
-        btn.classList.remove('updating');
+        // update.sh restarts the Flask server (pkill/relaunch), which kills the
+        // very process serving THIS request — so a connection drop here almost
+        // always means the update applied and the server is bouncing. Wait for
+        // it to come back, then reload into the new UI instead of crying error.
+        output.innerHTML = '<span class="green">// UPDATE APPLIED — server restarting...</span>\n' +
+            '<span class="amber">Waiting for server to come back online...</span>';
+        waitForServerAndReload(output, btn);
     }
+}
+
+async function waitForServerAndReload(output, btn) {
+    for (let i = 0; i < 40; i++) {          // up to ~20s of polling
+        await new Promise(r => setTimeout(r, 500));
+        try {
+            const ping = await fetch('/api/config', { cache: 'no-store' });
+            if (ping.ok) {
+                output.innerHTML += '\n<span class="green">// SERVER BACK ONLINE</span>';
+                let count = 3;
+                const countdown = setInterval(() => {
+                    output.innerHTML += '\n<span class="amber">Reloading in ' + count + '...</span>';
+                    count--;
+                    if (count < 0) { clearInterval(countdown); location.reload(); }
+                }, 1000);
+                return;
+            }
+        } catch (e) { /* still down — keep polling */ }
+    }
+    output.innerHTML += '\n<span class="red">// △ Server did not respond in time — refresh manually (Ctrl+Shift+R)</span>';
+    btn.textContent = 'UPDATE';
+    btn.disabled = false;
+    btn.classList.remove('updating');
 }
 </script>
 
