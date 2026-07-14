@@ -53,9 +53,11 @@ def _launch_kismet():
     """Start the dual-band capture as root, without a terminal.
 
     The server runs as the non-root examiner and cannot enter monitor mode
-    itself, so it shells out to start_kismet.sh under `sudo -n`. The installer
-    grants a scoped NOPASSWD sudoers rule for exactly this script path, so no
-    password prompt is needed. Returns (ok: bool, status: str) where status is
+    itself, so it shells out to `sudo -n /usr/bin/bash start_kismet.sh`. The
+    installer grants a scoped NOPASSWD rule for exactly that `bash <script>`
+    form (the bare-path form is unreliable when the user also has a blanket
+    password-required sudo rule), so no password prompt is needed. Returns
+    (ok: bool, status: str) where status is
     one of: already_running | launching | script_missing | spawn_failed |
     launch_failed. 'launch_failed' means the capture exited immediately — the
     passwordless grant is absent (older install) or the script bailed at startup
@@ -67,7 +69,7 @@ def _launch_kismet():
         return False, 'script_missing'
     try:
         lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
-        proc = subprocess.Popen(['sudo', '-n', script],
+        proc = subprocess.Popen(['sudo', '-n', '/usr/bin/bash', script],
                                 stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
                                 start_new_session=True)
         lf.close()
@@ -485,7 +487,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5b — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5c — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms

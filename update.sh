@@ -56,8 +56,10 @@ sudo usermod -aG kismet "$(id -un)" 2>/dev/null || true
 # Sudoers rules for tools that genuinely require root (driver-level operations).
 # Use $(id -un) not $USER ($USER can be empty in non-login shells -> a
 # username-less line is a sudoers SYNTAX ERROR that wedges sudo). The trailing
-# start_kismet.sh entry lets the app auto-launch the dual-band capture.
-echo "$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover, $INSTALL_DIR/start_kismet.sh" | sudo tee /etc/sudoers.d/dsg-tscm
+# start_kismet.sh entries let the app auto-launch the dual-band capture; grant
+# BOTH the `bash <script>` and bare-path forms (the bare form alone is
+# unreliable alongside a blanket password sudo rule — same as DSG Sentinel).
+echo "$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover, /usr/bin/bash $INSTALL_DIR/start_kismet.sh, $INSTALL_DIR/start_kismet.sh" | sudo tee /etc/sudoers.d/dsg-tscm
 sudo chmod 440 /etc/sudoers.d/dsg-tscm
 
 # 4. Restart the Flask server only if it was already running.
