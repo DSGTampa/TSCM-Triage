@@ -31,13 +31,22 @@ _SESSION_TYPE = 'resumed'
 _DATA_ARCHIVED = False
 
 
+# We tag our own capture with this --log-title (see start_kismet.sh) so the app
+# recognises ITS OWN Kismet and is never fooled by another product's Kismet
+# running on the same box — DSG TSCM operates as if nothing else exists.
+KISMET_TAG = 'dsg_tscm'
+
+
 def _kismet_running():
-    """True if a live Kismet process is present."""
+    """True only if OUR tagged Kismet capture is live. A bare `pgrep -x kismet`
+    would also match a co-resident capture from a different app and make us read
+    a stale DB, so we match our own --log-title specifically."""
     try:
-        return subprocess.run(['pgrep', '-x', 'kismet'],
-                              capture_output=True).returncode == 0
+        out = subprocess.run(['pgrep', '-af', 'kismet'],
+                             capture_output=True, text=True).stdout
     except Exception:
         return False
+    return any(KISMET_TAG in ln for ln in out.splitlines())
 
 
 def _launch_kismet():
@@ -47,34 +56,35 @@ def _launch_kismet():
     itself, so it shells out to start_kismet.sh under `sudo -n`. The installer
     grants a scoped NOPASSWD sudoers rule for exactly this script path, so no
     password prompt is needed. Returns (ok: bool, status: str) where status is
-    one of: already_running | launching | script_missing | no_sudoers |
-    spawn_failed. 'no_sudoers' means the grant is absent (e.g. an install that
-    predates this feature) — the caller falls back to showing the manual
-    command."""
+    one of: already_running | launching | script_missing | spawn_failed |
+    launch_failed. 'launch_failed' means the capture exited immediately — the
+    passwordless grant is absent (older install) or the script bailed at startup
+    (see kismet_launch.log) — and the caller falls back to the manual command."""
     if _kismet_running():
         return True, 'already_running'
     script = os.path.join(BASE, 'start_kismet.sh')
     if not os.path.isfile(script):
         return False, 'script_missing'
-    # Confirm the passwordless grant exists BEFORE spawning, so we can report a
-    # clear status instead of a silent no-op (sudo -n would otherwise just fail
-    # into the log while Popen still reports success).
-    try:
-        chk = subprocess.run(['sudo', '-n', '-l', script],
-                             capture_output=True, text=True, timeout=5)
-        if chk.returncode != 0:
-            return False, 'no_sudoers'
-    except Exception:
-        return False, 'no_sudoers'
     try:
         lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
-        subprocess.Popen(['sudo', '-n', script],
-                         stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
-                         start_new_session=True)
+        proc = subprocess.Popen(['sudo', '-n', script],
+                                stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
+                                start_new_session=True)
         lf.close()
-        return True, 'launching'
     except Exception:
         return False, 'spawn_failed'
+    # Detect success by outcome, not a pre-check: `sudo -n` with no passwordless
+    # grant fails within milliseconds, so the process exits almost immediately.
+    # A real launch keeps running (kismet is long-lived). If it's still alive
+    # after a short grace period, the capture is starting. (An earlier
+    # `sudo -n -l` pre-check was unreliable — it returns 0 for any allowed
+    # command when the user has cached creds or blanket sudo, not just NOPASSWD.)
+    try:
+        proc.wait(timeout=2)
+        # Exited early: no passwordless grant, or the capture bailed at startup.
+        return False, 'launch_failed'  # details in kismet_launch.log
+    except subprocess.TimeoutExpired:
+        return True, 'launching'
 
 # Where case output is written. Defaults to ~/DSG-TSCM/cases, but can be
 # redirected to an external drive (e.g. a USB stick on a Raspberry Pi) by
@@ -475,7 +485,9 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5a — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5b — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
-    app.run(host='127.0.0.1', port=5555, debug=False)
+    # threaded: the Kismet launch briefly blocks its request while it confirms
+    # the capture stayed up, so serve other requests concurrently.
+    app.run(host='127.0.0.1', port=5555, debug=False, threaded=True)

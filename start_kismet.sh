@@ -48,5 +48,7 @@ else
 fi
 
 echo "// Log prefix: ${LOG_PREFIX}   (owner: ${OWNER})"
-echo "// Starting Kismet: kismet ${SOURCES[*]} --no-ncurses --log-prefix ${LOG_PREFIX}"
-exec kismet "${SOURCES[@]}" --no-ncurses --log-prefix "${LOG_PREFIX}"
+# --log-title dsg_tscm tags THIS capture as ours so the app can tell its own
+# Kismet apart from any other product's Kismet running on the same machine.
+echo "// Starting Kismet: kismet ${SOURCES[*]} --no-ncurses --log-prefix ${LOG_PREFIX} --log-title dsg_tscm"
+exec kismet "${SOURCES[@]}" --no-ncurses --log-prefix "${LOG_PREFIX}" --log-title dsg_tscm
