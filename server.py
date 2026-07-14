@@ -471,11 +471,20 @@ def api_validation_start_kismet():
     data = request.get_json(silent=True) or {}
     site_path = (data.get('site_path')
                  or (_active_site or {}).get('site_path') or '').strip()
+    # DEBUG: confirm the correct FULL site_path is arriving from the frontend
+    # (should be CASES_PATH/<case>/<site>, e.g. .../cases/test2/test2).
+    print('[start-kismet] received site_path=%r (request=%r, active=%r)' % (
+        site_path, data.get('site_path'),
+        (_active_site or {}).get('site_path')), file=sys.stderr, flush=True)
     if not site_path:
         return jsonify({'success': False, 'error': 'no active site'}), 400
     kismet_dir = os.path.join(site_path, 'wireless', 'kismet')
+    # kismet --log-prefix is a DIRECTORY that must already exist; captures land
+    # as {log-prefix}/{log-title}-{ts}.kismet. mkdir the full prefix dir (a plain
+    # mkdir of wireless/kismet would leave the Kismet subdir missing -> FATAL).
+    log_prefix = os.path.join(kismet_dir, 'Kismet')
     try:
-        os.makedirs(kismet_dir, exist_ok=True)
+        os.makedirs(log_prefix, exist_ok=True)
     except OSError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
@@ -511,14 +520,14 @@ def api_validation_start_kismet():
         # --log-prefix is a DIRECTORY; kismet writes {dir}/{log-title}-{ts}.kismet
         subprocess.Popen(
             ['sudo', '-n', 'kismet'] + sources +
-            ['--no-ncurses', '--log-prefix', kismet_dir, '--log-title', KISMET_TAG],
+            ['--no-ncurses', '--log-prefix', log_prefix, '--log-title', KISMET_TAG],
             stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
             start_new_session=True)
         lf.close()
     except Exception as e:
         return jsonify({'success': False, 'error': 'spawn failed: %s' % e}), 500
     return jsonify({'success': True, 'interface': ', '.join(used),
-                    'interfaces': used, 'log_prefix': kismet_dir,
+                    'interfaces': used, 'log_prefix': log_prefix,
                     'band': 'dual-band' if len(used) >= 2 else 'single-adapter'})
 
 
@@ -744,7 +753,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5g — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5h — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms

@@ -612,10 +612,15 @@ const SiteSetup = {
     try{ d=await (await fetch("/api/validation/create-site",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify(body)})).json(); }catch(e){}
     if(!d || !d.success){ this.tab("new"); err.textContent=(d&&d.error)||"Could not create site."; return; }
     const meta=d.metadata;
-    // Start Kismet pointed at this site's folder.
+    // Persist the active site NOW so localStorage['dsg_active_site'] is the single
+    // source of truth BEFORE we start Kismet, then read the full site_path back
+    // from it (avoids sending a stale/partial path to start-kismet).
+    localStorage.setItem("dsg_active_site", JSON.stringify(meta));
+    const active=JSON.parse(localStorage.getItem("dsg_active_site")||"{}");
+    // Start Kismet pointed at this site's folder (full site_path from localStorage).
     this.el("site-load-title").textContent="STARTING KISMET…";
     let k=null;
-    try{ k=await (await fetch("/api/validation/start-kismet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site_path:meta.site_path})})).json(); }catch(e){}
+    try{ k=await (await fetch("/api/validation/start-kismet",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({site_path:active.site_path})})).json(); }catch(e){}
     if(k && k.success){ this.el("site-load-steps").textContent="KISMET CAPTURING ON "+k.interface+" · WAITING FOR DEVICES…"; }
     else { this.el("site-load-steps").innerHTML="⚠ "+((k&&k.error)||"Kismet did not start.")+"<br>You can still proceed — attach a monitor interface and devices will populate."; }
     // Wait 5 s for Kismet to spin up, then reveal Step 1.
