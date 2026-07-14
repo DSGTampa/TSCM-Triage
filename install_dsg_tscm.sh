@@ -19,7 +19,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 INSTALL_DIR="$HOME/dsg-tscm"
 
 # Files that make up the project
-PROJECT_FILES=(dsg_tscm_triage.html validation.html server.py launch.sh launch_server.sh analyze_capture.sh start_kismet.sh)
+PROJECT_FILES=(dsg_tscm_triage.html validation.html server.py launch.sh launch_server.sh analyze_capture.sh start_kismet.sh update.sh)
 
 # Sanity check — the HTML must live alongside this installer
 if [[ ! -f "$SCRIPT_DIR/dsg_tscm_triage.html" ]]; then
@@ -226,6 +226,21 @@ if [[ -d "$SCRIPT_DIR/engines" ]]; then
 else
   echo -e "${YELLOW}[!]${NC} engines/ not found in source — Network Validation will not load"
 fi
+
+# ── Verify critical files actually landed ────────────────────
+# A missing server.py deploys an app that 404s on every API endpoint (the exact
+# failure this guards against). Fail loudly rather than "succeed" with a broken
+# install.
+MISSING=()
+for CRIT in server.py dsg_tscm_triage.html validation.html; do
+  [[ -f "$INSTALL_DIR/$CRIT" ]] || MISSING+=("$CRIT")
+done
+if [[ ${#MISSING[@]} -gt 0 ]]; then
+  echo -e "${RED}[!] CRITICAL: not deployed to $INSTALL_DIR: ${MISSING[*]}${NC}"
+  echo -e "${RED}    The app would 404 on its endpoints. Aborting — re-run the installer from the project source.${NC}"
+  exit 1
+fi
+echo -e "${GREEN}[✓]${NC} Verified server.py + HTML + validation.html deployed to $INSTALL_DIR"
 
 # ── Launcher (HTML only, no server) ──────────────────────────
 cat > "$INSTALL_DIR/launch.sh" << 'LAUNCHER'
