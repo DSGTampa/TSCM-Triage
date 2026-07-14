@@ -87,31 +87,33 @@ def _touch_active_site(device_count=None):
         pass
 
 
-def _find_monitor_iface():
-    """Return the name of a monitor-mode wireless interface, or None. Reads
-    `iw dev` (no sudo needed); falls back to parsing `airmon-ng`."""
+def _find_monitor_ifaces():
+    """Return the list of monitor-mode wireless interfaces (in `iw dev` order).
+    Reads `iw dev` (no sudo needed); falls back to parsing `airmon-ng`."""
     try:
         out = subprocess.run(['iw', 'dev'], capture_output=True,
                              text=True, timeout=5).stdout
     except Exception:
         out = ''
-    iface = None
+    ifaces, iface = [], None
     for line in out.splitlines():
         line = line.strip()
         if line.startswith('Interface '):
             iface = line.split(None, 1)[1]
         elif line.startswith('type ') and 'monitor' in line and iface:
-            return iface
-    try:
-        out = subprocess.run(['airmon-ng'], capture_output=True,
-                             text=True, timeout=8).stdout
-        for line in out.splitlines():
-            for tok in line.split():
-                if 'mon' in tok and 'wlan' in tok:
-                    return tok
-    except Exception:
-        pass
-    return None
+            ifaces.append(iface)
+            iface = None
+    if not ifaces:
+        try:
+            out = subprocess.run(['airmon-ng'], capture_output=True,
+                                 text=True, timeout=8).stdout
+            for line in out.splitlines():
+                for tok in line.split():
+                    if 'mon' in tok and 'wlan' in tok and tok not in ifaces:
+                        ifaces.append(tok)
+        except Exception:
+            pass
+    return ifaces
 
 
 _load_active_site()
@@ -477,11 +479,24 @@ def api_validation_start_kismet():
     except OSError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
 
-    mon = _find_monitor_iface()
-    if not mon:
+    mons = _find_monitor_ifaces()
+    if not mons:
         return jsonify({'success': False,
                         'error': 'No monitor-mode interface found. '
                                  'Run: sudo airmon-ng start wlan1'}), 400
+
+    # Dual-band like start_kismet.sh: with 2+ adapters the first hops 2.4GHz and
+    # the second hops 5GHz; a single adapter full-hops both bands.
+    CH_24 = '1,2,3,4,5,6,7,8,9,10,11,12,13,14'
+    CH_5 = ('36,40,44,48,52,56,60,64,100,104,108,112,116,120,124,128,132,'
+            '136,140,149,153,157,161,165')
+    if len(mons) >= 2:
+        used = mons[:2]
+        sources = ['-c', '%s:name=wifi24,channels="%s"' % (used[0], CH_24),
+                   '-c', '%s:name=wifi5,channels="%s"' % (used[1], CH_5)]
+    else:
+        used = mons[:1]
+        sources = ['-c', '%s:name=wifiall,channels="%s,%s"' % (used[0], CH_24, CH_5)]
 
     # Best-effort stop of any prior capture (needs a pkill grant; ignored if
     # denied), then launch ours tagged and pointed at the site folder.
@@ -495,15 +510,16 @@ def api_validation_start_kismet():
         lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
         # --log-prefix is a DIRECTORY; kismet writes {dir}/{log-title}-{ts}.kismet
         subprocess.Popen(
-            ['sudo', '-n', 'kismet', '-c', mon, '--no-ncurses',
-             '--log-prefix', kismet_dir, '--log-title', KISMET_TAG],
+            ['sudo', '-n', 'kismet'] + sources +
+            ['--no-ncurses', '--log-prefix', kismet_dir, '--log-title', KISMET_TAG],
             stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
             start_new_session=True)
         lf.close()
     except Exception as e:
         return jsonify({'success': False, 'error': 'spawn failed: %s' % e}), 500
-    return jsonify({'success': True, 'interface': mon,
-                    'log_prefix': kismet_dir})
+    return jsonify({'success': True, 'interface': ', '.join(used),
+                    'interfaces': used, 'log_prefix': kismet_dir,
+                    'band': 'dual-band' if len(used) >= 2 else 'single-adapter'})
 
 
 @app.route('/api/validation/verify', methods=['POST'])
@@ -712,7 +728,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5e — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5f — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
