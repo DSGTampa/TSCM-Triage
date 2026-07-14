@@ -587,17 +587,24 @@ const SessionSetup = {
 
   async resume(){
     let s=this.status; if(!s){ try{ s=await (await fetch("/api/session/status")).json(); }catch(e){} }
+    const parts=[];
+    // If the prior capture is no longer running, relaunch it (without clearing
+    // any data) so RESUME comes back to live devices, not a stale snapshot.
+    if(s && !s.kismet_running){
+      let k=null; try{ k=await (await fetch("/api/kismet/start",{method:"POST"})).json(); }catch(e){}
+      if(k && k.ok) parts.push("Kismet was not running — restarting the dual-band capture now. Devices will populate shortly.");
+      else parts.push("Kismet is not running and could not be auto-started. Run it manually:<br><code>"+((k&&k.start_command)||"sudo bash ~/dsg-tscm/start_kismet.sh")+"</code>");
+    }
     const age=s?s.session_age_hours:null;
-    let msg="";
     if(age!=null && age>2){
       const dt=(s&&s.capture_mtime)?new Date(s.capture_mtime*1000).toLocaleString():"unknown";
-      msg+="Last session was "+dt+". Devices may have changed. Consider re-running baseline enrollment before monitoring.";
+      parts.push("Last session was "+dt+". Devices may have changed. Consider re-running baseline enrollment before monitoring.");
     }
     if(s && !s.baseline_enrolled){
-      msg+=(msg?"<br><br>":"")+"No baseline enrolled for this session. Site Awareness alerts will fire for all devices. Consider running Network Validation first.";
+      parts.push("No baseline enrolled for this session. Site Awareness alerts will fire for all devices. Consider running Network Validation first.");
     }
-    if(!msg){ this.proceed(); return; }
-    this.el("sess-resume-msg").innerHTML="⚠ "+msg;
+    if(!parts.length){ this.proceed(); return; }
+    this.el("sess-resume-msg").innerHTML="⚠ "+parts.join("<br><br>");
     this.screen("sess-resume-warn");
   },
 };

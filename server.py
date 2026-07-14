@@ -461,8 +461,21 @@ def api_session_new():
     })
 
 
+@app.route('/api/kismet/start', methods=['POST'])
+def api_kismet_start():
+    """Launch the dual-band capture on demand without clearing any data. Used by
+    the RESUME path when a prior capture is no longer running. Idempotent:
+    returns already_running if Kismet is already up."""
+    launched, kismet_status = _launch_kismet()
+    return jsonify({
+        'ok': launched,
+        'kismet_launch': kismet_status,
+        'start_command': 'sudo bash %s/start_kismet.sh' % BASE,
+    })
+
+
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5 — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5a — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     app.run(host='127.0.0.1', port=5555, debug=False)
