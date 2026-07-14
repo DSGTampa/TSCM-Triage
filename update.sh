@@ -51,10 +51,13 @@ sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/tcpdump 2>/dev/null || true
 sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/tshark 2>/dev/null || true
 
 # Add user to kismet group
-sudo usermod -aG kismet $USER 2>/dev/null || true
+sudo usermod -aG kismet "$(id -un)" 2>/dev/null || true
 
-# Sudoers rules for tools that genuinely require root (driver-level operations)
-echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover" | sudo tee /etc/sudoers.d/dsg-tscm
+# Sudoers rules for tools that genuinely require root (driver-level operations).
+# Use $(id -un) not $USER ($USER can be empty in non-login shells -> a
+# username-less line is a sudoers SYNTAX ERROR that wedges sudo). The trailing
+# start_kismet.sh entry lets the app auto-launch the dual-band capture.
+echo "$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover, $INSTALL_DIR/start_kismet.sh" | sudo tee /etc/sudoers.d/dsg-tscm
 sudo chmod 440 /etc/sudoers.d/dsg-tscm
 
 # 4. Restart the Flask server only if it was already running.

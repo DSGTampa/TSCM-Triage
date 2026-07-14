@@ -39,6 +39,43 @@ def _kismet_running():
     except Exception:
         return False
 
+
+def _launch_kismet():
+    """Start the dual-band capture as root, without a terminal.
+
+    The server runs as the non-root examiner and cannot enter monitor mode
+    itself, so it shells out to start_kismet.sh under `sudo -n`. The installer
+    grants a scoped NOPASSWD sudoers rule for exactly this script path, so no
+    password prompt is needed. Returns (ok: bool, status: str) where status is
+    one of: already_running | launching | script_missing | no_sudoers |
+    spawn_failed. 'no_sudoers' means the grant is absent (e.g. an install that
+    predates this feature) — the caller falls back to showing the manual
+    command."""
+    if _kismet_running():
+        return True, 'already_running'
+    script = os.path.join(BASE, 'start_kismet.sh')
+    if not os.path.isfile(script):
+        return False, 'script_missing'
+    # Confirm the passwordless grant exists BEFORE spawning, so we can report a
+    # clear status instead of a silent no-op (sudo -n would otherwise just fail
+    # into the log while Popen still reports success).
+    try:
+        chk = subprocess.run(['sudo', '-n', '-l', script],
+                             capture_output=True, text=True, timeout=5)
+        if chk.returncode != 0:
+            return False, 'no_sudoers'
+    except Exception:
+        return False, 'no_sudoers'
+    try:
+        lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
+        subprocess.Popen(['sudo', '-n', script],
+                         stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
+                         start_new_session=True)
+        lf.close()
+        return True, 'launching'
+    except Exception:
+        return False, 'spawn_failed'
+
 # Where case output is written. Defaults to ~/DSG-TSCM/cases, but can be
 # redirected to an external drive (e.g. a USB stick on a Raspberry Pi) by
 # setting CASES_PATH — this spares the SD card from scan/pcap write wear.
@@ -395,9 +432,10 @@ def api_session_status():
 @app.route('/api/session/new', methods=['POST'])
 def api_session_new():
     """Start a fresh location: archive the working data dir so nothing is truly
-    lost, reset the working files to empty, and hand back the command the
-    examiner runs to start a fresh dual-band Kismet capture (the server cannot
-    enter monitor mode itself — that needs root)."""
+    lost, reset the working files to empty, and auto-launch a fresh dual-band
+    Kismet capture via the scoped NOPASSWD sudoers rule. If that grant is
+    missing (older install), the returned start_command lets the examiner run
+    it manually."""
     global _SESSION_TYPE, _DATA_ARCHIVED
     archived = None
     if os.path.isdir(DATA_DIR) and os.listdir(DATA_DIR):
@@ -413,15 +451,18 @@ def api_session_new():
     _session.save({'selected_aps': [], 'clients': {}})
     _SESSION_TYPE = 'new'
     _DATA_ARCHIVED = bool(archived)
+    launched, kismet_status = _launch_kismet()
     return jsonify({
         'ok': True,
         'archived_to': os.path.basename(archived) if archived else None,
         'start_command': 'sudo bash %s/start_kismet.sh' % BASE,
+        'kismet_launched': launched,
+        'kismet_launch': kismet_status,
     })
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.4i — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5 — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     app.run(host='127.0.0.1', port=5555, debug=False)

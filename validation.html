@@ -561,8 +561,16 @@ const SessionSetup = {
     let d=null; try{ d=await (await fetch("/api/session/new",{method:"POST"})).json(); }catch(e){}
     this.screen("sess-loading");
     const cmd=(d&&d.start_command)||"sudo bash ~/dsg-tscm/start_kismet.sh";
+    const launched = !!(d && d.kismet_launched);
+    // Auto-launched: hide the manual command and its label. Otherwise (no sudoers
+    // grant / older install) surface the command for the examiner to run.
     this.el("sess-cmd").textContent=cmd;
-    this.el("sess-steps").textContent=((d&&d.archived_to)?("ARCHIVED "+d.archived_to+" · "):"")+"CLEARING DATA ✓ · WAITING FOR DEVICES…";
+    this.el("sess-cmd").style.display = launched ? "none" : "";
+    const lbl=document.querySelector(".sess-cmd-lbl"); if(lbl) lbl.style.display = launched ? "none" : "";
+    const arch=(d&&d.archived_to)?("ARCHIVED "+d.archived_to+" · "):"";
+    this.el("sess-steps").textContent = arch + (launched
+      ? "KISMET LAUNCHING ✓ · WAITING FOR DEVICES…"
+      : "CLEARING DATA ✓ · RUN THE COMMAND ABOVE TO START KISMET…");
     this._elapsed=0; this.beginMsg=true;
     const tick=async()=>{
       this._elapsed+=5;
