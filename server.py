@@ -476,7 +476,6 @@ def api_validation_start_kismet():
         os.makedirs(kismet_dir, exist_ok=True)
     except OSError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
-    kismet_prefix = os.path.join(kismet_dir, 'Kismet')
 
     mon = _find_monitor_iface()
     if not mon:
@@ -494,16 +493,17 @@ def api_validation_start_kismet():
         pass
     try:
         lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
+        # --log-prefix is a DIRECTORY; kismet writes {dir}/{log-title}-{ts}.kismet
         subprocess.Popen(
             ['sudo', '-n', 'kismet', '-c', mon, '--no-ncurses',
-             '--log-prefix', kismet_prefix, '--log-title', KISMET_TAG],
+             '--log-prefix', kismet_dir, '--log-title', KISMET_TAG],
             stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
             start_new_session=True)
         lf.close()
     except Exception as e:
         return jsonify({'success': False, 'error': 'spawn failed: %s' % e}), 500
     return jsonify({'success': True, 'interface': mon,
-                    'log_prefix': kismet_prefix})
+                    'log_prefix': kismet_dir})
 
 
 @app.route('/api/validation/verify', methods=['POST'])
@@ -712,7 +712,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5d — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5e — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
