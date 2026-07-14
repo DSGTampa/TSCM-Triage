@@ -141,6 +141,14 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 .site-banner{display:flex;align-items:center;gap:12px;flex-wrap:wrap;border:1px solid var(--cyan);border-left:4px solid var(--cyan);border-radius:6px;background:#00c8d70a;padding:10px 14px;font-family:var(--mono);font-size:12.5px;color:var(--body);margin-bottom:2px;}
 .site-banner .sb-label{color:var(--cyan);letter-spacing:.05em;}
 .site-banner .spacer{flex:1;}
+/* Step 0 monitor-mode status */
+.site-mon{font-family:var(--mono);font-size:12.5px;line-height:1.55;padding:11px 14px;border-radius:8px;margin-bottom:14px;border:1px solid var(--border);border-left:4px solid var(--dim);color:var(--dim);}
+.site-mon.warn{border-color:var(--amber);border-left-color:var(--amber);background:#1a1305;color:#f0d9a8;}
+.site-mon.ok{border-color:#3ddc8455;border-left-color:var(--green);background:#0c1f14;color:#9fe6bf;}
+.site-mon.err{border-color:#ff6b6b55;border-left-color:var(--red);background:#1f0d0d;color:#f0b0b0;}
+.site-mon code{color:#f0a832;}
+.site-mon a.recheck{color:var(--cyan);cursor:pointer;text-decoration:underline;}
+.sess-btn:disabled,.sess-btn.go:disabled{opacity:.4;cursor:not-allowed;border-color:var(--border);color:var(--dim);background:#0a1520;}
 </style>
 </head>
 <body>
@@ -238,6 +246,7 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
 
     <!-- CREATE NEW SITE -->
     <div class="site-pane on" id="pane-new">
+      <div class="site-mon" id="site-mon">◌ Checking monitor mode…</div>
       <div class="site-field"><label>Case # <span class="req">*</span></label>
         <input id="f-case" placeholder="e.g. 2026-0142" autocomplete="off"></div>
       <div class="site-field"><label>Site Name <span class="req">*</span></label>
@@ -248,7 +257,7 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
         <input id="f-exam" value="Dwayne Denny" autocomplete="off"></div>
       <div class="site-amber">△ A monitor-mode wireless adapter must be attached before creating a new site. The tool will attempt to auto-detect the monitor interface. If none is found, run: <code>sudo airmon-ng start wlan1</code></div>
       <div class="sess-actions">
-        <button class="sess-btn go" id="site-create">CREATE SITE &amp; START KISMET ›</button>
+        <button class="sess-btn go" id="site-create" disabled>CREATE SITE &amp; START KISMET ›</button>
       </div>
       <div class="site-err" id="site-new-err"></div>
     </div>
@@ -555,7 +564,7 @@ const SiteSetup = {
     let active=null;
     try{ active=JSON.parse(localStorage.getItem("dsg_active_site")||"null"); }catch(e){}
     if(active && active.site_path){ this.activate(active); }   // resume — no Kismet restart
-    else { this.overlay(true); this.tab("new"); }
+    else { this.overlay(true); this.tab("new"); this.checkMonitor(); }
   },
 
   wire(){
@@ -576,6 +585,36 @@ const SiteSetup = {
     const b=document.getElementById("hdr-site"); if(b){ b.disabled=true; b.textContent="◈ …"; }
     try{ await fetch("/api/validation/stop-kismet",{method:"POST"}); }catch(e){}
     location.reload();
+  },
+
+  // ── Step 0 monitor-mode gate ──────────────────────────────────────────────
+  setMon(state, html){ const m=this.el("site-mon"); if(!m) return; m.className="site-mon"+(state?(" "+state):""); m.innerHTML=html; },
+  enableCreate(on){ const b=this.el("site-create"); if(b) b.disabled=!on; },
+
+  // Detect monitor mode; if none, auto-run start-monitor (airmon-ng check kill +
+  // start wlan1) so the examiner never needs a terminal. Gates CREATE NEW SITE.
+  async checkMonitor(){
+    this.enableCreate(false);
+    this.setMon("", "◌ Checking monitor mode…");
+    let d=null; try{ d=await (await fetch("/api/validation/check-monitor")).json(); }catch(e){}
+    if(d && d.found && d.monitor_interfaces && d.monitor_interfaces.length){
+      this.setMon("ok", "✓ Monitor mode active on "+esc(d.monitor_interfaces[0])+" — ready to capture");
+      this.enableCreate(true); return;
+    }
+    this.setMon("warn", "△ No monitor-mode interface detected. Starting monitor mode on wlan1…");
+    let s=null;
+    try{ s=await (await fetch("/api/validation/start-monitor",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({interface:"wlan1"})})).json(); }catch(e){}
+    if(s && s.success){
+      this.setMon("ok", "✓ Monitor mode active on "+esc(s.interface)+" — ready to capture");
+      this.enableCreate(true);
+    } else {
+      const detail=(s&&s.error)?('<br><span style="opacity:.75">'+esc(s.error)+"</span>"):"";
+      this.setMon("err", "✕ Could not start monitor mode automatically."+detail+
+        "<br>Run this in a terminal, then re-check:<br><code>sudo airmon-ng check kill &amp;&amp; sudo airmon-ng start wlan1</code>"+
+        '<br><a class="recheck" id="mon-recheck">↻ Re-check monitor mode</a>');
+      const rc=this.el("mon-recheck"); if(rc) rc.addEventListener("click",()=>this.checkMonitor());
+      this.enableCreate(false);
+    }
   },
 
   fmtDate(iso){ if(!iso) return "—"; try{ return new Date(iso).toLocaleString(); }catch(e){ return String(iso); } },

@@ -463,6 +463,43 @@ def api_validation_set_site():
     return jsonify({'success': True, 'metadata': meta})
 
 
+@app.route('/api/validation/check-monitor', methods=['GET', 'POST'])
+def api_validation_check_monitor():
+    """Report monitor-mode interfaces so Step 0 can decide whether to auto-start
+    monitor mode before a site is created. No sudo needed."""
+    mons = _find_monitor_ifaces()
+    return jsonify({'monitor_interfaces': mons, 'found': bool(mons)})
+
+
+@app.route('/api/validation/start-monitor', methods=['POST'])
+def api_validation_start_monitor():
+    """Bring up monitor mode with no terminal — `airmon-ng check kill` then
+    `airmon-ng start <iface>` via the passwordless grant — so the examiner never
+    has to run airmon-ng by hand. Returns the monitor interface that resulted."""
+    data = request.get_json(silent=True) or {}
+    iface = (data.get('interface') or 'wlan1').strip() or 'wlan1'
+    steps, r1, r2 = [], None, None
+    try:
+        r1 = subprocess.run(['sudo', '-n', 'airmon-ng', 'check', 'kill'],
+                            capture_output=True, text=True, timeout=30)
+        steps.append('check kill (rc=%d)' % r1.returncode)
+        r2 = subprocess.run(['sudo', '-n', 'airmon-ng', 'start', iface],
+                            capture_output=True, text=True, timeout=30)
+        steps.append('start %s (rc=%d)' % (iface, r2.returncode))
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e), 'steps': steps}), 500
+    time.sleep(2)  # airmon-ng needs a moment before the vif appears
+    mons = _find_monitor_ifaces()
+    if mons:
+        return jsonify({'success': True, 'interface': mons[0],
+                        'monitor_interfaces': mons, 'steps': steps})
+    # No monitor interface — surface the auth/driver reason (e.g. a missing grant
+    # shows "sudo: a password is required" in stderr).
+    err = ((r2.stderr if r2 else '') + (r1.stderr if r1 else '')).strip() \
+        or 'monitor mode did not come up after airmon-ng start %s' % iface
+    return jsonify({'success': False, 'error': err, 'steps': steps}), 500
+
+
 @app.route('/api/validation/start-kismet', methods=['POST'])
 def api_validation_start_kismet():
     """Launch Kismet writing into the active/selected site's wireless/kismet
@@ -753,7 +790,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5i — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5j — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
