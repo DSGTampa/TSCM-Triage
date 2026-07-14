@@ -47,15 +47,28 @@ sudo apt update
 # ============================================================
 echo ""
 echo -e "${CYAN}[2/11]${NC} Installing system prerequisites..."
-APT_PKGS="nmap arp-scan netdiscover aircrack-ng kismet tshark wireshark wireshark-common eyewitness docker.io hackrf soapysdr-tools rtl-sdr net-tools curl wget python3-pip wkhtmltopdf"
+# NOTE: wkhtmltopdf was removed from the Kali repo (no install candidate). It is
+# intentionally omitted — weasyprint (installed via pip below) is the PDF engine.
+APT_PKGS="nmap arp-scan netdiscover aircrack-ng kismet tshark wireshark wireshark-common eyewitness docker.io hackrf soapysdr-tools rtl-sdr net-tools curl wget python3-pip"
 # Preseed wireshark setuid answer so tshark install is non-interactive
 echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
 if sudo DEBIAN_FRONTEND=noninteractive apt install -y $APT_PKGS; then
   APT_STATUS="installed"
   echo -e "${GREEN}[✓]${NC} System packages installed"
 else
+  # `apt install` is all-or-nothing: a single unavailable package (e.g. a tool
+  # later dropped from the Kali repo) aborts the ENTIRE batch, which would leave
+  # critical deps like python3-pip uninstalled. Fall back to per-package installs
+  # so the ones that are available still land.
   APT_STATUS="partial"
-  echo -e "${YELLOW}[!]${NC} One or more apt packages failed — continuing"
+  echo -e "${YELLOW}[!]${NC} Batch install failed — retrying packages individually..."
+  for P in $APT_PKGS; do
+    if sudo DEBIAN_FRONTEND=noninteractive apt install -y "$P" >/dev/null 2>&1; then
+      echo -e "${GREEN}[✓]${NC} $P"
+    else
+      echo -e "${YELLOW}[!]${NC} $P unavailable — skipped"
+    fi
+  done
 fi
 
 # ============================================================
@@ -63,7 +76,13 @@ fi
 # ============================================================
 echo ""
 echo -e "${CYAN}[3/11]${NC} Installing core Python packages..."
-if pip3 install flask flask-cors wsdiscovery --break-system-packages; then
+# Use `python3 -m pip` so this works regardless of whether the pip3 shim is on
+# PATH; bootstrap pip via ensurepip if the apt python3-pip install did not land.
+PIP="python3 -m pip"
+if ! $PIP --version >/dev/null 2>&1; then
+  python3 -m ensurepip --upgrade >/dev/null 2>&1 || true
+fi
+if $PIP install flask flask-cors wsdiscovery --break-system-packages; then
   PIP_CORE_STATUS="installed"
   echo -e "${GREEN}[✓]${NC} flask, flask-cors, wsdiscovery installed"
 else
@@ -71,9 +90,9 @@ else
   echo -e "${RED}[!]${NC} Core Python packages failed to install"
 fi
 
-# weasyprint powers PDF export for the Network Validation report (wkhtmltopdf is
-# the fallback, installed via apt above). Non-fatal if it fails to build.
-pip install weasyprint --break-system-packages 2>/dev/null || true
+# weasyprint powers PDF export for the Network Validation report. Non-fatal if
+# it fails to build (wkhtmltopdf is no longer packaged in the Kali repo).
+$PIP install weasyprint --break-system-packages 2>/dev/null || true
 
 # ============================================================
 #  4. PIP PACKAGES (optional OSINT — may fail, that's OK)
@@ -82,7 +101,7 @@ echo ""
 echo -e "${CYAN}[4/11]${NC} Installing optional OSINT tools (failures are non-fatal)..."
 for PKG in holehe phoneinfoga sherlock-project; do
   echo -e "${WHITE}    → $PKG${NC}"
-  if pip3 install "$PKG" --break-system-packages 2>/dev/null; then
+  if $PIP install "$PKG" --break-system-packages 2>/dev/null; then
     PIP_OPT_OK+=("$PKG")
     echo -e "${GREEN}[✓]${NC} $PKG installed"
   else
@@ -99,8 +118,8 @@ echo -e "${CYAN}[5/11]${NC} Configuring tshark/wireshark capture permissions..."
 if dpkg -l wireshark-common &>/dev/null 2>&1; then
   echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
   sudo dpkg-reconfigure -f noninteractive wireshark-common 2>/dev/null
-  sudo usermod -aG wireshark "$USER" 2>/dev/null
-  echo -e "${GREEN}[✓]${NC} wireshark group configured for $USER (logout/login to activate)"
+  sudo usermod -aG wireshark "$(id -un)" 2>/dev/null
+  echo -e "${GREEN}[✓]${NC} wireshark group configured for $(id -un) (logout/login to activate)"
 else
   echo -e "${YELLOW}[!]${NC} wireshark-common not present — skipping capture permission fix"
 fi
@@ -112,10 +131,12 @@ sudo setcap cap_net_raw,cap_net_admin+eip /usr/sbin/tcpdump 2>/dev/null || true
 sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/tshark 2>/dev/null || true
 
 # Add user to kismet group
-sudo usermod -aG kismet $USER 2>/dev/null || true
+sudo usermod -aG kismet "$(id -un)" 2>/dev/null || true
 
-# Sudoers rules for tools that genuinely require root (driver-level operations)
-echo "$USER ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover" | sudo tee /etc/sudoers.d/dsg-tscm
+# Sudoers rules for tools that genuinely require root (driver-level operations).
+# Use $(id -un), not $USER: $USER can be empty in non-login shells, which would
+# write a username-less line and produce a sudoers SYNTAX ERROR (wedging sudo).
+echo "$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover" | sudo tee /etc/sudoers.d/dsg-tscm
 sudo chmod 440 /etc/sudoers.d/dsg-tscm
 
 # ============================================================
