@@ -422,7 +422,7 @@ def api_validation_create_site():
     safe_site = re.sub(r'[^A-Za-z0-9._-]', '_', site_name)
     site_path = os.path.join(CASES_PATH, safe_case, safe_site)
     try:
-        for subdir in ('wireless/kismet', 'scans', 'reports'):
+        for subdir in ('wireless/kismet/Kismet', 'scans', 'reports'):
             os.makedirs(os.path.join(site_path, subdir), exist_ok=True)
     except OSError as e:
         return jsonify({'success': False, 'error': str(e)}), 500
@@ -753,7 +753,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5h — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5i — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
