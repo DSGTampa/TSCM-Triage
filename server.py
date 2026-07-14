@@ -87,6 +87,61 @@ def _touch_active_site(device_count=None):
         pass
 
 
+def _site_baseline_path():
+    """Path to the active site's baseline.json, or None if no active site."""
+    if _active_site and _active_site.get('site_path'):
+        return os.path.join(_active_site['site_path'], 'baseline.json')
+    return None
+
+
+def _read_site_baseline():
+    """Load the active site's baseline.json, or None."""
+    p = _site_baseline_path()
+    if not p:
+        return None
+    try:
+        with open(p) as f:
+            return json.load(f)
+    except (OSError, ValueError):
+        return None
+
+
+def _write_site_baseline(data):
+    """Write the active site's baseline.json. Returns the path written, or None."""
+    p = _site_baseline_path()
+    if not p:
+        return None
+    try:
+        os.makedirs(os.path.dirname(p), exist_ok=True)
+        with open(p, 'w') as f:
+            json.dump(data, f, indent=2)
+        return p
+    except OSError:
+        return None
+
+
+def _restore_verified_from_baseline(session):
+    """Merge VERIFIED status from the site baseline.json into the session's client
+    map so enrolled devices stay VERIFIED even after a browser/localStorage clear.
+    Returns a (possibly new) session dict; does not write to disk."""
+    base = _read_site_baseline()
+    if not base:
+        return session
+    session = dict(session)
+    clients = dict(session.get('clients') or {})
+    for c in base.get('verified_clients', []):
+        mac = (c.get('mac') if isinstance(c, dict) else c) or ''
+        mac = mac.strip().upper()
+        if not mac:
+            continue
+        rec = dict(clients.get(mac) or {})
+        rec['status'] = net_validation.STATUS_VERIFIED
+        rec.setdefault('notes', '')
+        clients[mac] = rec
+    session['clients'] = clients
+    return session
+
+
 def _find_monitor_ifaces():
     """Return the list of monitor-mode wireless interfaces (in `iw dev` order).
     Reads `iw dev` (no sudo needed); falls back to parsing `airmon-ng`."""
@@ -362,6 +417,9 @@ def api_validation_aps():
                         'active_site': _active_site})
     dc = db.count_devices()
     _touch_active_site(dc)  # keep last_sweep / device_count current for this site
+    # Restore VERIFIED status for previously enrolled devices from baseline.json
+    # so it survives a browser/localStorage clear.
+    session = _restore_verified_from_baseline(session)
     return jsonify({'aps': net_validation.list_aps(db),
                     'session': session, 'kismet_connected': True,
                     'capture': capture_name,
@@ -606,18 +664,68 @@ def api_validation_verify():
 
 @app.route('/api/validation/enroll', methods=['POST'])
 def api_validation_enroll():
-    """Enroll every VERIFIED client plus the selected APs into the baseline."""
+    """Enroll the sweep into the site baseline in three categories:
+      - verified_aps       : the selected APs                    (VERIFIED)
+      - verified_clients   : ALL clients of the selected APs      (VERIFIED)
+      - unresolved_devices : every other Kismet device           (UNRESOLVED)
+    Writes {site_path}/baseline.json with examiner/case/site metadata and mirrors
+    VERIFIED status into the session checklist."""
+    pattern = _site_kismet_glob()
+    db = kismet_db.open_db(pattern)
     session = _session.load()
-    verified = [mac for mac, rec in session.get('clients', {}).items()
-                if (rec or {}).get('status') == net_validation.STATUS_VERIFIED]
-    aps = session.get('selected_aps', [])
-    entries = ([{'mac': m, 'category': 'VERIFIED'} for m in verified] +
-               [{'mac': m, 'category': 'WIFI_AP'} for m in aps
-                if m.upper() not in {v.upper() for v in verified}])
-    n = _baseline.add_many(entries) if entries else 0
-    return jsonify({'enrolled': n, 'verified_clients': len(verified),
-                    'access_points': len(aps),
-                    'summary': _baseline.get_summary()})
+    ap_macs = session.get('selected_aps', [])
+    ap_set = {m.upper() for m in ap_macs}
+
+    all_aps = net_validation.list_aps(db)
+    verified_aps = [a for a in all_aps if a['mac'].upper() in ap_set]
+    verified_clients = net_validation.list_clients(db, ap_macs)
+    accounted = ap_set | {c['mac'].upper() for c in verified_clients}
+
+    # Everything else Kismet saw that is neither a selected AP nor a client of
+    # one -> UNRESOLVED (flagged for investigation).
+    unresolved_devices = []
+    if db is not None:
+        for d in db.get_all_devices(category='all', limit=30000):
+            if d['mac'].upper() in accounted:
+                continue
+            unresolved_devices.append({
+                'mac': d['mac'],
+                'vendor': d.get('vendor') or 'Unknown',
+                'category': d.get('category') or '',
+                'ssid': d.get('ssid') or '',
+                'rssi': d.get('rssi'),
+                'first_seen': d.get('first_seen'),
+                'last_seen': d.get('last_seen'),
+            })
+
+    site = _active_site or {}
+    baseline = {
+        'verified_aps': verified_aps,
+        'verified_clients': verified_clients,
+        'unresolved_devices': unresolved_devices,
+        'enrolled_at': datetime.datetime.now().isoformat(),
+        'examiner': site.get('examiner', ''),
+        'case_number': site.get('case_number', ''),
+        'site_name': site.get('site_name', ''),
+    }
+    written = _write_site_baseline(baseline)
+
+    # Mirror VERIFIED status into the checklist session, and keep the app-level
+    # baseline in sync so report "not-in-baseline" flagging still works.
+    for c in verified_clients:
+        _session.set_client(c['mac'], status=net_validation.STATUS_VERIFIED)
+    entries = ([{'mac': a['mac'], 'category': 'WIFI_AP'} for a in verified_aps] +
+               [{'mac': c['mac'], 'category': 'VERIFIED'} for c in verified_clients])
+    if entries:
+        _baseline.add_many(entries)
+
+    return jsonify({
+        'enrolled': len(verified_aps) + len(verified_clients),
+        'verified_aps': len(verified_aps),
+        'verified_clients': len(verified_clients),
+        'unresolved_devices': len(unresolved_devices),
+        'baseline_path': written,
+    })
 
 
 @app.route('/api/validation/report')
@@ -790,7 +898,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5k — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5l — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms

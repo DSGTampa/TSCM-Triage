@@ -509,7 +509,10 @@ const Validation = {
     try{
       const d=await (await fetch("/api/validation/enroll",{method:"POST"})).json();
       if(d.error){ this.status("✕ "+d.error); return; }
-      this.status("🛡 enrolled "+d.enrolled+" ("+d.verified_clients+" verified clients + "+d.access_points+" APs)");
+      // All shown clients are clients of selected APs -> now VERIFIED.
+      this.clients.forEach(c=>{ this.rec(c.mac).status="VERIFIED"; });
+      this.renderClients();
+      this.status("🛡 enrolled — "+(d.verified_aps||0)+" APs + "+(d.verified_clients||0)+" clients VERIFIED · "+(d.unresolved_devices||0)+" UNRESOLVED");
     }catch(e){ this.status("✕ enroll failed"); }
   },
 
