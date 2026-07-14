@@ -30,6 +30,92 @@ _session = net_validation.ValidationSession(SESSION_PATH)
 _SESSION_TYPE = 'resumed'
 _DATA_ARCHIVED = False
 
+# ── Active site (Network Validation Step 0 — Site Identification) ───────────
+# The examiner creates/picks a site before anything else; captures, reads and
+# reports are then scoped to that site's folder under CASES_PATH. Persisted so
+# the active site survives a server restart.
+ACTIVE_SITE_PATH = os.path.join(DATA_DIR, 'active_site.json')
+_active_site = None
+
+
+def _load_active_site():
+    global _active_site
+    try:
+        with open(ACTIVE_SITE_PATH) as f:
+            _active_site = json.load(f)
+    except (OSError, ValueError):
+        _active_site = None
+    return _active_site
+
+
+def _set_active_site(meta):
+    global _active_site
+    _active_site = meta
+    try:
+        os.makedirs(DATA_DIR, exist_ok=True)
+        with open(ACTIVE_SITE_PATH, 'w') as f:
+            json.dump(meta, f, indent=2)
+    except OSError:
+        pass
+
+
+def _site_kismet_glob():
+    """Glob for the ACTIVE site's Kismet captures, or None to fall back to the
+    engine's default search. Scopes all reads to the current site's folder."""
+    if _active_site and _active_site.get('site_path'):
+        return os.path.join(_active_site['site_path'],
+                            'wireless', 'kismet', '**', '*.kismet')
+    return None
+
+
+def _touch_active_site(device_count=None):
+    """Bump the active site's last_sweep (and device_count) in its metadata.json
+    so LOAD EXISTING reflects recency. Best-effort — never fails a request."""
+    if not (_active_site and _active_site.get('site_path')):
+        return
+    meta_path = os.path.join(_active_site['site_path'], 'metadata.json')
+    try:
+        with open(meta_path) as f:
+            meta = json.load(f)
+        meta['last_sweep'] = datetime.datetime.now().isoformat()
+        if device_count is not None:
+            meta['device_count'] = device_count
+        with open(meta_path, 'w') as f:
+            json.dump(meta, f, indent=2)
+        _active_site.update(meta)
+    except (OSError, ValueError):
+        pass
+
+
+def _find_monitor_iface():
+    """Return the name of a monitor-mode wireless interface, or None. Reads
+    `iw dev` (no sudo needed); falls back to parsing `airmon-ng`."""
+    try:
+        out = subprocess.run(['iw', 'dev'], capture_output=True,
+                             text=True, timeout=5).stdout
+    except Exception:
+        out = ''
+    iface = None
+    for line in out.splitlines():
+        line = line.strip()
+        if line.startswith('Interface '):
+            iface = line.split(None, 1)[1]
+        elif line.startswith('type ') and 'monitor' in line and iface:
+            return iface
+    try:
+        out = subprocess.run(['airmon-ng'], capture_output=True,
+                             text=True, timeout=8).stdout
+        for line in out.splitlines():
+            for tok in line.split():
+                if 'mon' in tok and 'wlan' in tok:
+                    return tok
+    except Exception:
+        pass
+    return None
+
+
+_load_active_site()
+
 
 # We tag our own capture with this --log-title (see start_kismet.sh) so the app
 # recognises ITS OWN Kismet and is never fooled by another product's Kismet
@@ -262,24 +348,29 @@ def api_validation_aps():
     the UI can show the examiner *why* the list may be empty (e.g. a live capture
     that has not accumulated devices yet, or one with no source attached).
     """
-    db = kismet_db.open_db()
+    pattern = _site_kismet_glob()
+    db = kismet_db.open_db(pattern)
     session = _session.load()
-    capture = kismet_db.resolve_db_path()
+    capture = kismet_db.resolve_db_path(pattern)
     capture_name = os.path.basename(capture) if capture else None
     if db is None or not db.is_available():
         return jsonify({'aps': [], 'session': session,
                         'kismet_connected': False, 'capture': capture_name,
-                        'device_count': 0, 'error': 'kismet_disconnected'})
+                        'device_count': 0, 'error': 'kismet_disconnected',
+                        'active_site': _active_site})
+    dc = db.count_devices()
+    _touch_active_site(dc)  # keep last_sweep / device_count current for this site
     return jsonify({'aps': net_validation.list_aps(db),
                     'session': session, 'kismet_connected': True,
                     'capture': capture_name,
-                    'device_count': db.count_devices()})
+                    'device_count': dc,
+                    'active_site': _active_site})
 
 
 @app.route('/api/validation/clients')
 def api_validation_clients():
     """Client devices associated with the selected APs (Step 2)."""
-    db = kismet_db.open_db()
+    db = kismet_db.open_db(_site_kismet_glob())
     session = _session.load()
     if db is None or not db.is_available():
         return jsonify({'clients': [], 'session': session,
@@ -289,6 +380,130 @@ def api_validation_clients():
     clients = net_validation.list_clients(db, ap_macs)
     return jsonify({'clients': clients, 'session': session,
                     'kismet_connected': True})
+
+
+@app.route('/api/validation/sites', methods=['GET'])
+def api_validation_sites():
+    """List every site (CASES_PATH/<case>/<site>/metadata.json), newest sweep
+    first, for the LOAD EXISTING table in Step 0."""
+    sites = []
+    if os.path.isdir(CASES_PATH):
+        for case_dir in os.listdir(CASES_PATH):
+            case_abs = os.path.join(CASES_PATH, case_dir)
+            if not os.path.isdir(case_abs):
+                continue
+            for site_dir in os.listdir(case_abs):
+                meta_path = os.path.join(case_abs, site_dir, 'metadata.json')
+                if os.path.isfile(meta_path):
+                    try:
+                        with open(meta_path) as f:
+                            sites.append(json.load(f))
+                    except (OSError, ValueError):
+                        continue
+    sites.sort(key=lambda x: x.get('last_sweep', '') or '', reverse=True)
+    return jsonify(sites)
+
+
+@app.route('/api/validation/create-site', methods=['POST'])
+def api_validation_create_site():
+    """Create the folder structure + metadata.json for a new site and make it
+    the active site."""
+    data = request.get_json(silent=True) or {}
+    case_number = (data.get('case_number') or '').strip()
+    site_name = (data.get('site_name') or '').strip().replace(' ', '_')
+    location = (data.get('location') or '').strip()
+    examiner = (data.get('examiner') or '').strip()
+    if not all([case_number, site_name, location, examiner]):
+        return jsonify({'success': False, 'error': 'All fields required'}), 400
+    # Keep case/site as single, traversal-safe path segments.
+    safe_case = re.sub(r'[^A-Za-z0-9._-]', '_', case_number)
+    safe_site = re.sub(r'[^A-Za-z0-9._-]', '_', site_name)
+    site_path = os.path.join(CASES_PATH, safe_case, safe_site)
+    try:
+        for subdir in ('wireless/kismet', 'scans', 'reports'):
+            os.makedirs(os.path.join(site_path, subdir), exist_ok=True)
+    except OSError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    now = datetime.datetime.now().isoformat()
+    metadata = {
+        'case_number': case_number,
+        'site_name': site_name,
+        'location': location,
+        'examiner': examiner,
+        'created': now,
+        'last_sweep': now,
+        'device_count': 0,
+        'site_path': site_path,
+    }
+    with open(os.path.join(site_path, 'metadata.json'), 'w') as f:
+        json.dump(metadata, f, indent=2)
+    _set_active_site(metadata)
+    # Fresh site -> fresh validation session so Step 1/2 don't carry old picks.
+    _session.save({'selected_aps': [], 'clients': {}})
+    return jsonify({'success': True, 'site_path': site_path, 'metadata': metadata})
+
+
+@app.route('/api/validation/set-site', methods=['POST'])
+def api_validation_set_site():
+    """Make an existing site active (LOAD EXISTING) so reads/reports resume from
+    its data."""
+    data = request.get_json(silent=True) or {}
+    site_path = (data.get('site_path') or '').strip()
+    meta_path = os.path.join(site_path, 'metadata.json')
+    if not (site_path and os.path.isfile(meta_path)):
+        return jsonify({'success': False, 'error': 'site not found'}), 404
+    try:
+        with open(meta_path) as f:
+            meta = json.load(f)
+    except (OSError, ValueError) as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    _set_active_site(meta)
+    return jsonify({'success': True, 'metadata': meta})
+
+
+@app.route('/api/validation/start-kismet', methods=['POST'])
+def api_validation_start_kismet():
+    """Launch Kismet writing into the active/selected site's wireless/kismet
+    folder. Requires a monitor-mode interface to already exist; tags the
+    capture --log-title dsg_tscm so the app recognises its own capture."""
+    data = request.get_json(silent=True) or {}
+    site_path = (data.get('site_path')
+                 or (_active_site or {}).get('site_path') or '').strip()
+    if not site_path:
+        return jsonify({'success': False, 'error': 'no active site'}), 400
+    kismet_dir = os.path.join(site_path, 'wireless', 'kismet')
+    try:
+        os.makedirs(kismet_dir, exist_ok=True)
+    except OSError as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    kismet_prefix = os.path.join(kismet_dir, 'Kismet')
+
+    mon = _find_monitor_iface()
+    if not mon:
+        return jsonify({'success': False,
+                        'error': 'No monitor-mode interface found. '
+                                 'Run: sudo airmon-ng start wlan1'}), 400
+
+    # Best-effort stop of any prior capture (needs a pkill grant; ignored if
+    # denied), then launch ours tagged and pointed at the site folder.
+    try:
+        subprocess.run(['sudo', '-n', 'pkill', '-x', 'kismet'],
+                       capture_output=True, timeout=8)
+        time.sleep(2)
+    except Exception:
+        pass
+    try:
+        lf = open(os.path.join(BASE, 'kismet_launch.log'), 'ab')
+        subprocess.Popen(
+            ['sudo', '-n', 'kismet', '-c', mon, '--no-ncurses',
+             '--log-prefix', kismet_prefix, '--log-title', KISMET_TAG],
+            stdout=lf, stderr=lf, stdin=subprocess.DEVNULL,
+            start_new_session=True)
+        lf.close()
+    except Exception as e:
+        return jsonify({'success': False, 'error': 'spawn failed: %s' % e}), 500
+    return jsonify({'success': True, 'interface': mon,
+                    'log_prefix': kismet_prefix})
 
 
 @app.route('/api/validation/verify', methods=['POST'])
@@ -334,7 +549,8 @@ def api_validation_report():
     Returned inline (text/html) so the browser opens it directly for print;
     a timestamped copy is also saved under reports/ for the case file.
     """
-    db = kismet_db.open_db()
+    pattern = _site_kismet_glob()
+    db = kismet_db.open_db(pattern)
     session = _session.load()
     ap_macs = session.get('selected_aps', [])
     all_aps = net_validation.list_aps(db)
@@ -342,9 +558,13 @@ def api_validation_report():
     aps = [a for a in all_aps if a['mac'].upper() in ap_set]
     clients = net_validation.list_clients(db, ap_macs)
 
-    capture = kismet_db.resolve_db_path()
+    capture = kismet_db.resolve_db_path(pattern)
     meta = {'generated_ts': int(time.time()),
             'capture': os.path.basename(capture) if capture else None}
+    if _active_site:
+        meta.update({k: _active_site.get(k) for k in
+                     ('case_number', 'site_name', 'location', 'examiner',
+                      'created', 'last_sweep')})
     html_doc = net_validation.render_validation_report(aps, clients, session, meta)
 
     try:
@@ -373,11 +593,16 @@ def api_validation_report_export():
         return jsonify({'error': "format must be one of pdf|txt|csv|html"}), 400
     case = (request.args.get('case') or '').strip()
     examiner = (request.args.get('examiner') or '').strip()
+    # Auto-populate from the active site's metadata when not supplied.
+    if _active_site:
+        case = case or _active_site.get('case_number', '')
+        examiner = examiner or _active_site.get('examiner', '')
 
-    db = kismet_db.open_db()
+    pattern = _site_kismet_glob()
+    db = kismet_db.open_db(pattern)
     session = _session.load()
     baseline = _baseline.get_all()
-    capture = kismet_db.resolve_db_path()
+    capture = kismet_db.resolve_db_path(pattern)
     model = validation_export.build_model(
         db, session, baseline, case=case, examiner=examiner,
         capture=os.path.basename(capture) if capture else None)
@@ -487,7 +712,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5c — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5 — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
