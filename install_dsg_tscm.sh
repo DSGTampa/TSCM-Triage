@@ -162,16 +162,24 @@ sudo setcap cap_net_raw,cap_net_admin+eip /usr/bin/tshark 2>/dev/null || true
 # Add user to kismet group
 sudo usermod -aG kismet "$(id -un)" 2>/dev/null || true
 
-# Sudoers rules for tools that genuinely require root (driver-level operations).
-# Use $(id -un), not $USER: $USER can be empty in non-login shells, which would
-# write a username-less line and produce a sudoers SYNTAX ERROR (wedging sudo).
-# The trailing start_kismet.sh entries let the app AUTO-LAUNCH the dual-band
-# capture (server runs `sudo -n /usr/bin/bash $INSTALL_DIR/start_kismet.sh`) —
-# no terminal. Grant BOTH the `bash <script>` and bare-path forms: the bare
-# form alone is unreliable when the user also has a blanket password-required
-# sudo rule, so we match however it is invoked (same approach as DSG Sentinel).
-echo "$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover, /usr/bin/bash $INSTALL_DIR/start_kismet.sh, $INSTALL_DIR/start_kismet.sh" | sudo tee /etc/sudoers.d/dsg-tscm
-sudo chmod 440 /etc/sudoers.d/dsg-tscm
+# Sudoers grant (VALIDATED + REPORTED). A plain `echo | sudo tee` writes nothing
+# AND reports nothing when sudo cannot authenticate, leaving no grant and a
+# capture that can never auto-launch. Build the rule in a temp file, validate it
+# with `visudo -c`, install it atomically, and print the real outcome. Grants
+# kismet + airmon-ng/airodump/netdiscover + a scoped `pkill -x kismet` (so
+# start-kismet can restart its own capture) + both invocation forms of
+# start_kismet.sh. Uses $(id -un) not $USER (an empty username is a sudoers
+# SYNTAX ERROR that wedges sudo).
+SUDOERS_RULE="$(id -un) ALL=(ALL) NOPASSWD: /usr/sbin/airmon-ng, /usr/bin/kismet, /usr/sbin/airodump-ng, /usr/sbin/netdiscover, /usr/bin/pkill -x kismet, /usr/bin/bash $INSTALL_DIR/start_kismet.sh, $INSTALL_DIR/start_kismet.sh"
+SUDOERS_TMP="$(mktemp)"
+printf '%s\n' "$SUDOERS_RULE" > "$SUDOERS_TMP"
+if sudo visudo -c -f "$SUDOERS_TMP" >/dev/null 2>&1 \
+   && sudo install -o root -g root -m 0440 "$SUDOERS_TMP" /etc/sudoers.d/dsg-tscm; then
+  echo -e "${GREEN}[✓]${NC} sudoers grant installed (/etc/sudoers.d/dsg-tscm)"
+else
+  echo -e "${RED}[!]${NC} sudoers grant NOT installed (sudo unavailable or rule invalid) — Kismet auto-launch will need a manual grant"
+fi
+rm -f "$SUDOERS_TMP"
 
 # ============================================================
 #  6. ARP-SCAN OUI/MAC VENDOR DATABASE
