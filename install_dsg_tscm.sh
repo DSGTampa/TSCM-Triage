@@ -115,13 +115,42 @@ done
 # ============================================================
 echo ""
 echo -e "${CYAN}[5/11]${NC} Configuring tshark/wireshark capture permissions..."
-if dpkg -l wireshark-common &>/dev/null 2>&1; then
+# Robust "is it actually installed" test. `dpkg -l wireshark-common` exits 0
+# even for a removed-but-config-present (rc) package, so query the real status.
+if dpkg-query -W -f='${Status}' wireshark-common 2>/dev/null | grep -q 'install ok installed'; then
+  RUN_USER="$(id -un)"
+  # Preseed the setuid answer and reconfigure so dumpcap (the capture helper
+  # tshark actually shells out to) gets the wireshark group + net capabilities.
   echo "wireshark-common wireshark-common/install-setuid boolean true" | sudo debconf-set-selections
-  sudo dpkg-reconfigure -f noninteractive wireshark-common 2>/dev/null
-  sudo usermod -aG wireshark "$(id -un)" 2>/dev/null
-  echo -e "${GREEN}[✓]${NC} wireshark group configured for $(id -un) (logout/login to activate)"
+  sudo DEBIAN_FRONTEND=noninteractive dpkg-reconfigure -f noninteractive wireshark-common 2>/dev/null
+
+  # The 'wireshark' group is normally created by the reconfigure above; create it
+  # explicitly if it is still missing, so the usermod below cannot silently no-op.
+  getent group wireshark >/dev/null 2>&1 || sudo groupadd wireshark 2>/dev/null
+
+  # Add the user, then confirm membership from the group DB (NOT `id`, whose
+  # cached group set does not reflect the change until the next login).
+  sudo usermod -aG wireshark "$RUN_USER" 2>/dev/null
+  if getent group wireshark 2>/dev/null | awk -F: '{print $4}' | tr ',' '\n' | grep -qx "$RUN_USER"; then
+    echo -e "${GREEN}[✓]${NC} $RUN_USER added to 'wireshark' group (logout/login to activate)"
+  else
+    echo -e "${YELLOW}[!]${NC} Could not add $RUN_USER to the wireshark group — run manually: sudo usermod -aG wireshark $RUN_USER"
+  fi
+
+  # Belt-and-suspenders: set capture capabilities directly on dumpcap. The
+  # reconfigure above normally does this, but a failed/interactive reconfigure
+  # would otherwise leave capture broken. tshark itself never needs caps.
+  DUMPCAP="$(command -v dumpcap 2>/dev/null || echo /usr/bin/dumpcap)"
+  if [[ -x "$DUMPCAP" ]]; then
+    if sudo setcap cap_net_raw,cap_net_admin+eip "$DUMPCAP" 2>/dev/null; then
+      echo -e "${GREEN}[✓]${NC} capture capabilities set on $DUMPCAP"
+    else
+      echo -e "${YELLOW}[!]${NC} could not set capabilities on $DUMPCAP (capture may require sudo)"
+    fi
+  fi
 else
-  echo -e "${YELLOW}[!]${NC} wireshark-common not present — skipping capture permission fix"
+  echo -e "${YELLOW}[!]${NC} wireshark-common not installed — skipping capture permission fix"
+  echo -e "    ${WHITE}Install wireshark, then re-run this installer to enable non-root tshark capture.${NC}"
 fi
 
 # Set capabilities so TSCM tools run without sudo
