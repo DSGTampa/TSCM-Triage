@@ -154,6 +154,7 @@ body{color:var(--body);font-family:var(--ui);font-size:14px;line-height:1.45;}
     </div>
     <div class="spacer"></div>
     <span class="kis-badge" id="kis-badge">◌ KISMET</span>
+    <button class="btn" id="hdr-site" title="Change or create the active site (Step 0)">◈ SITE</button>
     <button class="btn" id="val-refresh" title="Reload from the newest Kismet capture">⟳ REFRESH</button>
     <a class="back-link" href="/">‹ TRIAGE</a>
   </div>
@@ -562,9 +563,19 @@ const SiteSetup = {
     on("tab-new",()=>this.tab("new"));
     on("tab-load",()=>this.tab("load"));
     on("site-create",()=>this.create());
-    on("site-change",()=>{ localStorage.removeItem("dsg_active_site"); this.overlay(true); this.tab("new"); });
+    on("site-change",()=>this.changeSite());   // banner button
+    on("hdr-site",()=>this.changeSite());       // always-available header link
     const tbl=this.el("site-table-wrap");
     if(tbl) tbl.addEventListener("click",(e)=>{ const tr=e.target.closest("tr[data-site]"); if(tr) this.loadExisting(tr.dataset.site); });
+  },
+
+  // CHANGE SITE (banner button + header link): drop the active site, stop the
+  // running capture, and reload so Step 0 comes back up cleanly.
+  async changeSite(){
+    localStorage.removeItem("dsg_active_site");
+    const b=document.getElementById("hdr-site"); if(b){ b.disabled=true; b.textContent="◈ …"; }
+    try{ await fetch("/api/validation/stop-kismet",{method:"POST"}); }catch(e){}
+    location.reload();
   },
 
   fmtDate(iso){ if(!iso) return "—"; try{ return new Date(iso).toLocaleString(); }catch(e){ return String(iso); } },

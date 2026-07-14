@@ -522,6 +522,22 @@ def api_validation_start_kismet():
                     'band': 'dual-band' if len(used) >= 2 else 'single-adapter'})
 
 
+@app.route('/api/validation/stop-kismet', methods=['POST'])
+def api_validation_stop_kismet():
+    """Stop any running Kismet capture (used by CHANGE SITE). Uses the scoped
+    NOPASSWD `pkill -x kismet` grant, so it runs cleanly without a password.
+    pkill exit 1 = nothing matched (already stopped) — still a success."""
+    try:
+        r = subprocess.run(['sudo', '-n', 'pkill', '-x', 'kismet'],
+                           capture_output=True, text=True, timeout=8)
+    except Exception as e:
+        return jsonify({'success': False, 'error': str(e)}), 500
+    if r.returncode in (0, 1):
+        return jsonify({'success': True, 'stopped': r.returncode == 0})
+    return jsonify({'success': False,
+                    'error': (r.stderr or 'pkill failed').strip()}), 500
+
+
 @app.route('/api/validation/verify', methods=['POST'])
 def api_validation_verify():
     """Persist the examiner's checklist so the session can be resumed.
@@ -728,7 +744,7 @@ def api_kismet_start():
 
 
 if __name__ == '__main__':
-    print('\n  DSG TSCM Triage v1.8.5f — Flask Server')
+    print('\n  DSG TSCM Triage v1.8.5g — Flask Server')
     print('  http://127.0.0.1:5555')
     print('  Cases path: %s%s\n' % (CASES_PATH, '' if CASES_IS_DEFAULT else '  (external)'))
     # threaded: the Kismet launch briefly blocks its request while it confirms
